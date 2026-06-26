@@ -632,27 +632,69 @@ button[type="submit"] .btn-icon {
 .preview-media {
   position: relative;
   min-height: 360px;
+  height: 360px;
   background: #0d091a;
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid var(--border-glass);
 }
 
-.preview-media img,
+/* Thumbnail: always the base layer, visible immediately */
+.preview-media img {
+  width: 100%;
+  height: 100%;
+  min-height: 360px;
+  object-fit: cover;
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  animation: fadeInMedia 0.3s ease;
+}
+
+/* Video: stacks on top of thumbnail once loaded */
 .preview-media video {
   width: 100%;
   height: 100%;
   min-height: 360px;
   object-fit: cover;
   display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  animation: fadeInMedia 0.4s ease;
+  background: transparent;
+}
+
+@keyframes fadeInMedia {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Placeholder when no image loaded */
+.preview-media:not(:has(img[src])):not(:has(img[hidden]))::after,
+.preview-media:has(img[hidden]):not(:has(video:not([hidden])))::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(90deg, #0d091a 25%, #1a1235 50%, #0d091a 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .preview-media img[src=""],
 .preview-media img[hidden],
 .preview-media video[hidden] {
-  display: none;
+  display: none !important;
 }
 
+/* Show placeholder text if truly empty */
 .preview-media:has(img[src=""])::before {
   content: "Media Preview";
   position: absolute;
@@ -663,6 +705,7 @@ button[type="submit"] .btn-icon {
   font-family: var(--font-heading);
   font-weight: 700;
   font-size: 1.1rem;
+  z-index: 3;
 }
 
 .platform-icon {

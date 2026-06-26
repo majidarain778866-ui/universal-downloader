@@ -182,23 +182,44 @@ const selectPreviewItem = (data, downloads) => {
 
 const renderSmartPreview = (data, downloads) => {
   const previewItem = selectPreviewItem(data, downloads);
+
+  // ALWAYS show thumbnail immediately — it loads fast from CDN
   smartPreview.hidden = true;
   smartPreview.removeAttribute("src");
-  thumbnail.src = data.thumbnail || "";
-  thumbnail.hidden = false;
+  thumbnail.src = "";
+  thumbnail.hidden = true;
 
+  if (data.thumbnail) {
+    thumbnail.src = data.thumbnail;
+    thumbnail.hidden = false;
+    thumbnail.onerror = () => { thumbnail.hidden = true; };
+  }
+
+  // Lazy-load video preview AFTER thumbnail is shown
   if (previewItem?.type === "video" && previewItem.preview_url) {
-    smartPreview.src = assetUrl(previewItem.preview_url);
-    smartPreview.hidden = false;
-    thumbnail.hidden = Boolean(data.thumbnail);
-    smartPreview.addEventListener(
-      "error",
-      () => {
-        smartPreview.hidden = true;
-        thumbnail.hidden = false;
-      },
-      { once: true }
-    );
+    // Small delay so thumbnail renders first, then video fades in
+    setTimeout(() => {
+      const videoSrc = assetUrl(previewItem.preview_url);
+      smartPreview.src = videoSrc;
+      smartPreview.hidden = false;
+      // When video loads, show it alongside thumbnail (or replace if large)
+      smartPreview.addEventListener(
+        "loadedmetadata",
+        () => {
+          // Keep thumbnail visible, just also show video
+          smartPreview.hidden = false;
+        },
+        { once: true }
+      );
+      smartPreview.addEventListener(
+        "error",
+        () => {
+          smartPreview.hidden = true;
+          thumbnail.hidden = !data.thumbnail;
+        },
+        { once: true }
+      );
+    }, 100);
   }
 };
 

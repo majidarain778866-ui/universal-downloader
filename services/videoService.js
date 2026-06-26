@@ -18,50 +18,78 @@ if (bundledPythonPath) {
   process.env.PYTHONPATH = [bundledPythonPath, process.env.PYTHONPATH].filter(Boolean).join(process.platform === "win32" ? ";" : ":");
 }
 
-export let pythonCmd = "python";
+export let pythonCmd = "python3";
 export let ytDlpArgs = ["-m", "yt_dlp"];
 
 let hasPythonYtDlp = false;
 const isNetlify = Boolean(process.env.NETLIFY || process.env.LAMBDA_TASK_ROOT);
 
+// Respect explicit PYTHON env var (set in Dockerfile)
+const envPython = process.env.PYTHON;
+
 if (!isNetlify) {
-  try {
-    execSync("python -m yt_dlp --version", { stdio: "ignore" });
-    pythonCmd = "python";
-    ytDlpArgs = ["-m", "yt_dlp"];
-    hasPythonYtDlp = true;
-  } catch {
+  // Try explicit PYTHON env var first
+  if (envPython) {
+    try {
+      execSync(`${envPython} -m yt_dlp --version`, { stdio: "ignore" });
+      pythonCmd = envPython;
+      ytDlpArgs = ["-m", "yt_dlp"];
+      hasPythonYtDlp = true;
+    } catch {
+      // env python not available or no yt_dlp
+    }
+  }
+
+  if (!hasPythonYtDlp) {
     try {
       execSync("python3 -m yt_dlp --version", { stdio: "ignore" });
       pythonCmd = "python3";
       ytDlpArgs = ["-m", "yt_dlp"];
       hasPythonYtDlp = true;
     } catch {
-      // python module not available
+      try {
+        execSync("python -m yt_dlp --version", { stdio: "ignore" });
+        pythonCmd = "python";
+        ytDlpArgs = ["-m", "yt_dlp"];
+        hasPythonYtDlp = true;
+      } catch {
+        // python module not available
+      }
     }
   }
 }
 
 if (!hasPythonYtDlp) {
-  const currentDir = fileURLToPath(new URL(".", import.meta.url));
+  const currentDir2 = fileURLToPath(new URL(".", import.meta.url));
   const binName = process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp";
   const binPaths = [
-    join(currentDir, "..", "netlify", "functions", "bin", binName),
+    join(currentDir2, "..", "netlify", "functions", "bin", binName),
     join(process.cwd(), "netlify", "functions", "bin", binName),
     join(process.cwd(), "bin", binName),
-    join(currentDir, "bin", binName)
+    join(currentDir2, "bin", binName)
   ];
 
   const binPath = binPaths.find(p => existsSync(p));
   if (binPath) {
     pythonCmd = binPath;
     ytDlpArgs = [];
+    hasPythonYtDlp = true;
   } else {
-    // default/fallback
-    pythonCmd = "python";
-    ytDlpArgs = ["-m", "yt_dlp"];
+    // Last resort: try system yt-dlp binary
+    try {
+      execSync("yt-dlp --version", { stdio: "ignore" });
+      pythonCmd = "yt-dlp";
+      ytDlpArgs = [];
+      hasPythonYtDlp = true;
+    } catch {
+      // fallback to python3
+      pythonCmd = envPython || "python3";
+      ytDlpArgs = ["-m", "yt_dlp"];
+    }
   }
 }
+
+console.log(`[videoService] Using: ${pythonCmd} ${ytDlpArgs.join(" ")}`);
 
 const ALGORITHM = "aes-256-cbc";
 const SECRET_KEY = scryptSync(process.env.DOWNLOAD_SECRET || "social-downloader-secure-key-2026", "salt-123", 32);

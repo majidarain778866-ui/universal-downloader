@@ -1,4 +1,4 @@
-FROM node:20-bookworm-slim
+FROM node:20-bullseye-slim
 
 # Install Python, pip, ffmpeg, and other system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -9,12 +9,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Install yt-dlp via pip globally
-RUN pip3 install --break-system-packages -U yt-dlp
+# Install yt-dlp via pip3 (bullseye does not need --break-system-packages)
+RUN pip3 install -U yt-dlp
 
 # Set environment variables
 ENV PORT=7860
 ENV NODE_ENV=production
+ENV PYTHON=/usr/bin/python3
 
 # Create app directory
 WORKDIR /app
