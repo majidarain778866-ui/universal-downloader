@@ -32,6 +32,38 @@ export const platforms = {
       { question: "Does it scrape private profile data?", answer: "No. It only shows public metadata returned by the extractor for the provided public media URL." }
     ]
   },
+  "youtube-shorts": {
+    key: "youtube-shorts",
+    route: "/youtube-shorts-downloader",
+    title: "YouTube Shorts Downloader - Save Shorts & Videos in HD",
+    description: "Download YouTube Shorts, videos, and audio in high quality. Extract high-bitrate MP4s for offline playback.",
+    eyebrow: "YouTube Shorts Downloader",
+    heroTitle: "Download YouTube Shorts in Full HD",
+    heroSubtitle: "Save public YouTube Shorts and videos instantly. Free, fast, and no account needed.",
+    placeholder: "Paste a YouTube Shorts or Video URL...",
+    icon: "play_circle",
+    badge: "YT",
+    theme: {
+      "--theme-a": "rgba(255, 0, 0, 0.18)",
+      "--theme-b": "rgba(20, 20, 20, 0.12)",
+      "--theme-accent": "#ff0000",
+      "--theme-hot": "#cc0000",
+      "--theme-button": "linear-gradient(135deg, #ff0000, #cc0000)",
+      "--theme-cta": "linear-gradient(135deg, #cc0000, #ff0000)"
+    },
+    howToUse: {
+      title: "How to download YouTube Shorts",
+      steps: [
+        { title: "Copy YouTube Shorts URL", desc: "Find the Shorts video on YouTube, click share, and copy the public URL.", icon: "content_copy" },
+        { title: "Paste link in downloader", desc: "Paste the copied URL in the input field above to parse the media streams.", icon: "link" },
+        { title: "Download HD MP4 video", desc: "Select the desired quality (e.g. 720p or 1080p) and save the video.", icon: "download_for_offline" }
+      ]
+    },
+    faq: [
+      { question: "Does it support 1080p YouTube Shorts?", answer: "Yes, our tool extracts the highest available resolutions offered by YouTube, including full HD 1080p." },
+      { question: "Can I download audio from YouTube Shorts?", answer: "Yes, you can extract the background audio track as a separate high-quality MP3/M4A file." }
+    ]
+  },
   "tiktok-video": {
     key: "tiktok-video",
     route: "/tiktok-video-downloader",
