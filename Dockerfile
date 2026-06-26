@@ -14,8 +14,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python3 -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Install/upgrade yt-dlp in the virtual environment
-RUN pip3 install --no-cache-dir -U yt-dlp
+# Install/upgrade yt-dlp in the virtual environment (with curl-cffi for TLS spoofing)
+RUN pip3 install --no-cache-dir -U "yt-dlp[default,curl-cffi]"
+
 
 # Set environment variables
 ENV PORT=7860

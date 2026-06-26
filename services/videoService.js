@@ -830,9 +830,11 @@ const runYtDlp = async (url) => {
         "--no-check-formats",
         "--no-check-certificate",
         "--no-call-home",
+        "--impersonate", "chrome",
         "--extractor-args", "youtube:skip=hls,dash;player_client=android,web_creator",
         url
       ],
+
 
       {
         encoding: "utf8",

@@ -146,7 +146,8 @@ const streamYtDlpDownload = async (cached, inline = false) => {
     ...ytDlpArgs,
     "--no-warnings",
     "--ffmpeg-location",
-    ffmpegPath
+    ffmpegPath,
+    "--impersonate", "chrome"
   ];
 
   if (isAudioMp3) {
