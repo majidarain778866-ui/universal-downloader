@@ -575,7 +575,7 @@ const cacheMp3Download = ({ sourceUrl, title }) => {
     extension: "mp3",
     size: "",
     download_url: `/api/download?id=${encodeURIComponent(id)}`,
-    preview_url: `/api/download?id=${encodeURIComponent(id)}&preview=1`
+    preview_url: ""
   };
 };
 
@@ -620,6 +620,18 @@ const normalizeFormat = (format, entry, title, entryIndex, optionIndex) => {
   const id = cacheDownload({ format, entry, title, entryIndex });
   const mergedAudio = Boolean(type === "video" && hasVideo(format) && !hasAudio(format) && format.format_id);
   const isVideoWebm = type === "video" && String(format.ext || "").toLowerCase() === "webm";
+  
+  const sourceUrl = entry.webpage_url || entry.original_url || entry.url;
+  const isDirectRestrictionPlatform = sourceUrl && (
+    sourceUrl.includes("facebook.com") ||
+    sourceUrl.includes("fb.watch") ||
+    sourceUrl.includes("fb.com") ||
+    sourceUrl.includes("instagram.com") ||
+    sourceUrl.includes("instagr.am") ||
+    sourceUrl.includes("tiktok.com")
+  );
+  const requiresYtDlp = mergedAudio || isVideoWebm || (type === "audio" && sourceUrl) || isDirectRestrictionPlatform;
+
   const resolution =
     format.resolution ||
     (format.width && format.height ? `${format.width}x${format.height}` : type === "audio" ? "Audio only" : "Original");
@@ -643,7 +655,7 @@ const normalizeFormat = (format, entry, title, entryIndex, optionIndex) => {
     format_id: format.format_id || "",
     size: mergedAudio || isVideoWebm ? "" : formatBytes(format.filesize || format.filesize_approx),
     download_url: `/api/download?id=${encodeURIComponent(id)}`,
-    preview_url: `/api/download?id=${encodeURIComponent(id)}&preview=1`
+    preview_url: requiresYtDlp ? "" : `/api/download?id=${encodeURIComponent(id)}&preview=1`
   };
 };
 

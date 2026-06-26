@@ -463,6 +463,14 @@ const handleDownloadProxy = async (req, res) => {
 };
 
 const streamYtDlpDownload = async (cached, res, options = {}) => {
+  // Send headers immediately to prevent Gateway Timeout on cloud routers (Hugging Face / Render / Netlify)
+  res.writeHead(200, {
+    "content-type": contentTypeFromExtension(cached.ext),
+    "content-disposition": options.inline ? inlineDisposition(cached.filename) : contentDisposition(cached.filename),
+    "cache-control": "no-store",
+    ...corsHeaders
+  });
+
   const tempDir = await mkdtemp(join(tmpdir(), "social-downloader-"));
   const outputTemplate = join(tempDir, "download.%(ext)s");
   const isAudioMp3 = cached.type === "audio" && cached.ext === "mp3";
@@ -546,14 +554,6 @@ const streamYtDlpDownload = async (cached, res, options = {}) => {
     const output = completedFiles.filter(Boolean).find((f) => f.path === targetFile) || 
                    completedFiles.filter(Boolean).sort((a, b) => b.fileStat.size - a.fileStat.size)[0];
     if (!output) throw new Error("yt-dlp did not produce a downloadable file.");
-    const actualExtension = extname(output.path).slice(1) || cached.ext;
-    res.writeHead(200, {
-      "content-type": contentTypeFromExtension(actualExtension),
-      "content-disposition": options.inline ? inlineDisposition(cached.filename) : contentDisposition(cached.filename),
-      "content-length": output.fileStat.size,
-      "cache-control": "no-store",
-      ...corsHeaders
-    });
 
     await new Promise((resolve, reject) => {
       const stream = createReadStream(output.path);
