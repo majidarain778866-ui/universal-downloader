@@ -831,10 +831,9 @@ const runYtDlp = async (url) => {
         "--no-check-certificate",
         "--no-call-home",
         "--extractor-args", "youtube:skip=hls,dash;player_client=android,web_creator",
-        "--youtube-skip-dash-manifest",
-        "--youtube-skip-hls-manifest",
         url
       ],
+
       {
         encoding: "utf8",
         env: {
@@ -863,8 +862,9 @@ const runYtDlp = async (url) => {
     }
     const cleanError = stderr.split("\n")
       .map((line) => line.trim())
-      .filter((line) => line && !line.toLowerCase().includes("deprecated") && !line.startsWith("WARNING:"))
+      .filter((line) => line && !line.toLowerCase().includes("deprecated") && !line.toLowerCase().includes("please remove") && !line.startsWith("WARNING:"))
       .find(Boolean) || "Could not extract media from this URL.";
+
     throw new Error(cleanError);
   }
 
