@@ -862,11 +862,16 @@ const runYtDlp = async (url) => {
     }
     const cleanError = stderr.split("\n")
       .map((line) => line.trim())
-      .filter((line) => line && !line.toLowerCase().includes("deprecated") && !line.toLowerCase().includes("please remove") && !line.startsWith("WARNING:"))
-      .find(Boolean) || "Could not extract media from this URL.";
-
+      .filter((line) => line && 
+        !line.toLowerCase().includes("deprecated") && 
+        !line.toLowerCase().includes("please remove") && 
+        !line.toLowerCase().includes("github.com/yt-dlp/yt-dlp/issues/") && 
+        !line.startsWith("WARNING:")
+      )
+      .join(" | ") || "Could not extract media from this URL.";
     throw new Error(cleanError);
   }
+
 
 };
 
