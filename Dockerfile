@@ -1,21 +1,26 @@
-FROM node:20-bullseye-slim
+FROM node:20-bookworm-slim
 
-# Install Python, pip, ffmpeg, and other system dependencies
+# Install Python, pip, venv, ffmpeg, and other system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 \
     python3-pip \
+    python3-venv \
     ffmpeg \
     curl \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Install yt-dlp via pip3 (bullseye does not need --break-system-packages)
-RUN pip3 install -U yt-dlp
+# Create and use Python virtual environment to avoid PEP 668 restrictions
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install/upgrade yt-dlp in the virtual environment
+RUN pip3 install --no-cache-dir -U yt-dlp
 
 # Set environment variables
 ENV PORT=7860
 ENV NODE_ENV=production
-ENV PYTHON=/usr/bin/python3
+ENV PYTHON=/opt/venv/bin/python3
 
 # Create app directory
 WORKDIR /app
@@ -34,3 +39,4 @@ EXPOSE 7860
 
 # Run the Node server
 CMD ["node", "server.js"]
+

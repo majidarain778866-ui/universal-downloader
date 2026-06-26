@@ -861,8 +861,13 @@ const runYtDlp = async (url) => {
     if (/private|login|cookies|not available|unsupported|unable to extract|unable to download webpage|http error 404|Cannot parse data/i.test(stderr)) {
       throw new Error("This video is private, unsupported, unavailable, or needs cookies/login access.");
     }
-    throw new Error(stderr.split("\n").find(Boolean) || "Could not extract media from this URL.");
+    const cleanError = stderr.split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line && !line.toLowerCase().includes("deprecated") && !line.startsWith("WARNING:"))
+      .find(Boolean) || "Could not extract media from this URL.";
+    throw new Error(cleanError);
   }
+
 };
 
 export const normalizeUrl = (urlString) => {
