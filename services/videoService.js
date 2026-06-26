@@ -406,7 +406,7 @@ const detectPlatform = (data, entries, sourceUrl) => {
   return platform || { key: "generic", label: String(pick(data, ["extractor", "webpage_url_domain"]) || "Social video"), icon: "SD" };
 };
 
-const buildCreator = (data, entries) => {
+const buildCreator = (data, entries, platformKey) => {
   const first = entries[0] || {};
   const avatar =
     String(
@@ -414,12 +414,39 @@ const buildCreator = (data, entries) => {
         pick(first, ["uploader_avatar", "channel_avatar", "creator_avatar", "avatar_url", "profile_image_url"]) ||
         ""
     );
-  const profileUrl =
+  let profileUrl =
     String(
       pick(data, ["uploader_url", "channel_url", "creator_url"]) ||
         pick(first, ["uploader_url", "channel_url", "creator_url"]) ||
         ""
     );
+
+  // Reconstruct profile URL if missing
+  if (!profileUrl || !isHttpUrl(profileUrl)) {
+    const handle = String(
+      pick(data, ["uploader_id", "channel_id", "creator_id", "uploader", "channel", "creator"]) ||
+      pick(first, ["uploader_id", "channel_id", "creator_id", "uploader", "channel", "creator"]) ||
+      ""
+    ).trim();
+
+    if (handle) {
+      const cleanHandle = handle.replace(/^@/, "");
+      if (platformKey === "tiktok") {
+        profileUrl = `https://www.tiktok.com/@${cleanHandle}`;
+      } else if (platformKey === "instagram") {
+        profileUrl = `https://www.instagram.com/${cleanHandle}`;
+      } else if (platformKey === "twitter" || platformKey === "x") {
+        profileUrl = `https://x.com/${cleanHandle}`;
+      } else if (platformKey === "youtube") {
+        profileUrl = `https://www.youtube.com/${handle.startsWith("@") ? handle : `@${handle}`}`;
+      } else if (platformKey === "facebook") {
+        profileUrl = `https://www.facebook.com/${cleanHandle}`;
+      } else if (platformKey === "pinterest") {
+        profileUrl = `https://www.pinterest.com/${cleanHandle}`;
+      }
+    }
+  }
+
   const followers =
     numberLabel(pick(data, ["channel_follower_count", "uploader_follower_count", "followers"]) || pick(first, ["channel_follower_count", "uploader_follower_count", "followers"]));
 
@@ -638,7 +665,7 @@ const cacheMergedDownload = ({ sourceUrl, title, quality = "high" }) => {
     format_id: formatSelector,
     size: "",
     download_url: `/api/download?id=${encodeURIComponent(id)}`,
-    preview_url: ""
+    preview_url: `/api/download?id=${encodeURIComponent(id)}&preview=1`
   };
 };
 
@@ -683,7 +710,7 @@ const normalizeFormat = (format, entry, title, entryIndex, optionIndex) => {
     format_id: format.format_id || "",
     size: mergedAudio || isVideoWebm ? "" : formatBytes(format.filesize || format.filesize_approx),
     download_url: `/api/download?id=${encodeURIComponent(id)}`,
-    preview_url: requiresYtDlp ? "" : `/api/download?id=${encodeURIComponent(id)}&preview=1`
+    preview_url: `/api/download?id=${encodeURIComponent(id)}&preview=1`
   };
 };
 
@@ -1001,7 +1028,7 @@ export const fetchVideoDetails = async (url) => {
   const thumbnail =
     String(pick(data, ["thumbnail"]) || pick(entries[0], ["thumbnail"]) || pick(entries[0]?.thumbnails?.at?.(-1), ["url"]) || "");
   const platform = detectPlatform(data, entries, url);
-  const creator = buildCreator(data, entries);
+  const creator = buildCreator(data, entries, platform.key);
 
   const videos = entries.flatMap((entry, entryIndex) => {
     const entryTitle = String(pick(entry, ["title", "fulltitle"]) || title);
