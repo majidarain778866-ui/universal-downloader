@@ -8,9 +8,16 @@ import { fileURLToPath } from "node:url";
 import { fetchVideoDetails, getCachedDownload, pythonCmd, ytDlpArgs } from "./services/videoService.js";
 import { resolveLocalFfmpegPath } from "./services/localFfmpegPath.js";
 import { chmodSync } from "node:fs";
+import { platforms } from "./public/platforms.js";
+import { blogs } from "./public/blogs.js";
 
 const ffmpegPath = resolveLocalFfmpegPath();
 try { chmodSync(ffmpegPath, 0o755); } catch {}
+try {
+  if (pythonCmd && !pythonCmd.startsWith("python")) {
+    chmodSync(pythonCmd, 0o755);
+  }
+} catch {}
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const publicDir = join(__dirname, "public");
@@ -19,57 +26,37 @@ const DOWNLOAD_HEADER_TIMEOUT_MS = 30000;
 const publicSiteUrl = process.env.SITE_URL?.replace(/\/+$/, "");
 const publicApiBase = process.env.PUBLIC_API_BASE?.replace(/\/+$/, "");
 
-const seoPages = {
-  "/": {
-    title: "Social Downloader - HD Video Downloader for Creators",
-    description:
-      "Analyze public social media links, preview media, and download HD videos, thumbnails, and creator metadata from one clean workspace.",
-    canonical: "/",
-    pageKey: "home"
-  },
-  "/tiktok-video-downloader": {
-    title: "TikTok Video Downloader No Watermark - Social Downloader",
-    description:
-      "Download TikTok videos, thumbnails, and public creator details with clean no-watermark options when available.",
-    canonical: "/tiktok-video-downloader",
-    pageKey: "tiktok"
-  },
-  "/instagram-reels-downloader": {
-    title: "Instagram Reels Downloader - Save Reels in HD",
-    description:
-      "Paste an Instagram Reel link to analyze public media, view creator details, and download HD video or thumbnails.",
-    canonical: "/instagram-reels-downloader",
-    pageKey: "instagram"
-  },
-  "/youtube-shorts-downloader": {
-    title: "YouTube Shorts Downloader - HD Shorts and Thumbnails",
-    description:
-      "Download YouTube Shorts, video thumbnails, and public channel metadata from a fast glassy downloader workspace.",
-    canonical: "/youtube-shorts-downloader",
-    pageKey: "youtube"
-  },
-  "/facebook-video-downloader": {
-    title: "Facebook Video Downloader - Save Public Videos",
-    description:
-      "Analyze public Facebook video links and download available MP4 video assets, thumbnails, and metadata.",
-    canonical: "/facebook-video-downloader",
-    pageKey: "facebook"
-  },
-  "/twitter-video-downloader": {
-    title: "Twitter X Video Downloader - Save Public Videos",
-    description:
-      "Download public X and Twitter videos with platform detection, preview metadata, and polished download options.",
-    canonical: "/twitter-video-downloader",
-    pageKey: "twitter"
-  },
-  "/pinterest-video-downloader": {
-    title: "Pinterest Video Downloader - Save Pins and Thumbnails",
-    description:
-      "Download public Pinterest videos and thumbnails while previewing available pin and creator metadata.",
-    canonical: "/pinterest-video-downloader",
-    pageKey: "pinterest"
-  }
+const seoPages = {};
+
+// Map all 51 platforms
+for (const [key, p] of Object.entries(platforms)) {
+  seoPages[p.route] = {
+    title: p.title,
+    description: p.description,
+    canonical: p.route,
+    pageKey: p.key
+  };
+}
+
+// Map Blog Home
+seoPages["/blog"] = {
+  title: "Social Media Downloader News & Guides - Social Downloader",
+  description: "Read in-depth comparisons, tutorials, reviews, and updates about social media video downloaders, AI tools, and digital platforms.",
+  canonical: "/blog",
+  pageKey: "blog"
 };
+
+// Map individual blogs
+for (const blog of blogs) {
+  seoPages[`/blog/${blog.slug}`] = {
+    title: `${blog.title} - Social Downloader`,
+    description: blog.excerpt,
+    canonical: `/blog/${blog.slug}`,
+    pageKey: "blog-detail",
+    blogSlug: blog.slug
+  };
+}
+
 
 const mimeTypes = {
   ".html": "text/html; charset=utf-8",
@@ -263,10 +250,77 @@ const buildSchema = (req, page) => {
 };
 
 const renderIndex = async (req, page) => {
-  const template = await readFile(join(publicDir, "index.html"), "utf8");
+  let templatePath = join(publicDir, "index.html");
+  if (page.pageKey === "blog") {
+    templatePath = join(publicDir, "blog-list.html");
+  } else if (page.pageKey === "blog-detail") {
+    templatePath = join(publicDir, "blog-detail.html");
+  }
+
+  let template = await readFile(templatePath, "utf8");
   const schema = buildSchema(req, page);
 
-  return template
+  const meta = platforms[page.pageKey] || platforms.home;
+  const theme = meta.theme || platforms.home.theme;
+
+  const stepsHtml = (meta.howToUse?.steps || platforms.home.howToUse.steps)
+    .map(
+      (step, i) => `
+      <div class="step-card">
+        <div class="step-icon-wrapper">
+          <span class="material-symbols-outlined step-icon" id="step-${i + 1}-icon">${escapeHtml(step.icon)}</span>
+          <span class="step-number">0${i + 1}</span>
+        </div>
+        <div class="step-info">
+          <h3 id="step-${i + 1}-title">${escapeHtml(step.title)}</h3>
+          <p id="step-${i + 1}-desc">${escapeHtml(step.desc)}</p>
+        </div>
+      </div>`
+    )
+    .join("\n");
+
+  const faqHtml = (meta.faq || platforms.home.faq)
+    .map(
+      (item, i) => `
+      <details${i === 0 ? " open" : ""}>
+        <summary>${escapeHtml(item.question)}</summary>
+        <p>${escapeHtml(item.answer)}</p>
+      </details>`
+    )
+    .join("\n");
+
+  const allToolsHtml = Object.values(platforms)
+    .filter((p) => p.key !== "home" && p.key !== "blog" && p.key !== "blog-detail")
+    .map((p) => `
+      <a class="tool-chip glass-panel" href="${escapeHtml(p.route)}" style="--theme-accent: ${escapeHtml(p.theme["--theme-accent"])}">
+        <span class="material-symbols-outlined">${escapeHtml(p.icon)}</span>
+        <span>${escapeHtml(p.title.split(" - ")[0])}</span>
+      </a>`
+    )
+    .join("\n");
+
+  const blogsHtml = blogs
+    .map(
+      (post) => `
+      <article class="blog-card glass-panel">
+        <div class="blog-card-meta">
+          <span class="blog-card-category">${escapeHtml(post.category)}</span>
+          <span>•</span>
+          <span>${escapeHtml(post.date)}</span>
+        </div>
+        <a href="/blog/${post.slug}">
+          <h3>${escapeHtml(post.title)}</h3>
+        </a>
+        <p>${escapeHtml(post.excerpt)}</p>
+        <a class="blog-card-link" href="/blog/${post.slug}">
+          <span>Read article</span>
+          <span class="material-symbols-outlined">arrow_forward</span>
+        </a>
+      </article>`
+    )
+    .join("\n");
+
+  let html = template
     .replaceAll("__PAGE_TITLE__", escapeHtml(page.title))
     .replaceAll("__PAGE_DESCRIPTION__", escapeHtml(page.description))
     .replaceAll("__PAGE_CANONICAL__", escapeHtml(absoluteUrl(req, page.canonical)))
@@ -277,7 +331,39 @@ const renderIndex = async (req, page) => {
       publicApiBase
         ? `<script>window.SOCIAL_DOWNLOADER_API_BASE=${JSON.stringify(publicApiBase).replace(/</g, "\\u003c")};</script>`
         : ""
-    );
+    )
+    .replaceAll("__THEME_A__", theme["--theme-a"])
+    .replaceAll("__THEME_B__", theme["--theme-b"])
+    .replaceAll("__THEME_ACCENT__", theme["--theme-accent"])
+    .replaceAll("__THEME_HOT__", theme["--theme-hot"])
+    .replaceAll("__THEME_BUTTON__", theme["--theme-button"])
+    .replaceAll("__THEME_CTA__", theme["--theme-cta"])
+    .replaceAll("__PAGE_EYEBROW__", escapeHtml(meta.eyebrow || "Creator media workspace"))
+    .replaceAll("__PAGE_HERO_TITLE__", escapeHtml(meta.heroTitle || meta.title || "Download clean social media assets."))
+    .replaceAll("__PAGE_HERO_SUBTITLE__", escapeHtml(meta.heroSubtitle || meta.description || ""))
+    .replaceAll("__INPUT_PLACEHOLDER__", escapeHtml(meta.placeholder || "Paste TikTok, Instagram, YouTube..."))
+    .replaceAll("__BRAND_BADGE__", escapeHtml(meta.badge || "SD"))
+    .replaceAll("__SUPPORTED_TITLE__", escapeHtml((meta.title || "Social Media Video").split(" - ")[0]))
+    .replaceAll("__SUPPORTED_COPY__", escapeHtml(meta.description || ""))
+    .replaceAll("__HOW_TO_USE_STEPS__", stepsHtml)
+    .replaceAll("__ALL_TOOLS_GRID__", allToolsHtml)
+    .replaceAll("__FAQ_LIST__", faqHtml)
+    .replaceAll("__BLOGS_LIST_CONTAINER__", blogsHtml);
+
+  if (page.pageKey === "blog-detail" && page.blogSlug) {
+    const post = blogs.find((b) => b.slug === page.blogSlug);
+    if (post) {
+      html = html
+        .replaceAll("__BLOG_TITLE__", escapeHtml(post.title))
+        .replaceAll("__BLOG_AUTHOR__", escapeHtml(post.author))
+        .replaceAll("__BLOG_DATE__", escapeHtml(post.date))
+        .replaceAll("__BLOG_READ_TIME__", escapeHtml(post.readTime))
+        .replaceAll("__BLOG_EXCERPT__", escapeHtml(post.excerpt))
+        .replaceAll("__BLOG_CONTENT__", post.content);
+    }
+  }
+
+  return html;
 };
 
 const renderSitemap = (req) => {
@@ -386,6 +472,8 @@ const streamYtDlpDownload = async (cached, res, options = {}) => {
     cached.ext || "mp4",
     "-f",
     cached.formatSelector || cached.formatId,
+    "--postprocessor-args",
+    "Merger:-strict -2",
     "-o",
     outputTemplate,
     cached.sourceUrl

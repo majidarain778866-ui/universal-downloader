@@ -8,32 +8,58 @@ import { join } from "node:path";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
+const currentDir = fileURLToPath(new URL(".", import.meta.url));
+const bundledPythonPath = [
+  join(currentDir, "..", "netlify", "functions", "python"),
+  join(process.cwd(), "netlify", "functions", "python")
+].find(p => existsSync(p));
+
+if (bundledPythonPath) {
+  process.env.PYTHONPATH = [bundledPythonPath, process.env.PYTHONPATH].filter(Boolean).join(process.platform === "win32" ? ";" : ":");
+}
+
 export let pythonCmd = "python";
 export let ytDlpArgs = ["-m", "yt_dlp"];
 
-const currentDir = fileURLToPath(new URL(".", import.meta.url));
-const binName = process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp";
-const binPaths = [
-  join(currentDir, "..", "netlify", "functions", "bin", binName),
-  join(process.cwd(), "netlify", "functions", "bin", binName),
-  join(process.cwd(), "bin", binName),
-  join(currentDir, "bin", binName)
-];
+let hasPythonYtDlp = false;
+const isNetlify = Boolean(process.env.NETLIFY || process.env.LAMBDA_TASK_ROOT);
 
-const binPath = binPaths.find(p => existsSync(p));
-if (binPath) {
-  pythonCmd = binPath;
-  ytDlpArgs = [];
-} else {
+if (!isNetlify) {
   try {
-    execSync("python --version", { stdio: "ignore" });
+    execSync("python -m yt_dlp --version", { stdio: "ignore" });
+    pythonCmd = "python";
+    ytDlpArgs = ["-m", "yt_dlp"];
+    hasPythonYtDlp = true;
   } catch {
     try {
-      execSync("python3 --version", { stdio: "ignore" });
+      execSync("python3 -m yt_dlp --version", { stdio: "ignore" });
       pythonCmd = "python3";
+      ytDlpArgs = ["-m", "yt_dlp"];
+      hasPythonYtDlp = true;
     } catch {
-      // fallback
+      // python module not available
     }
+  }
+}
+
+if (!hasPythonYtDlp) {
+  const currentDir = fileURLToPath(new URL(".", import.meta.url));
+  const binName = process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp";
+  const binPaths = [
+    join(currentDir, "..", "netlify", "functions", "bin", binName),
+    join(process.cwd(), "netlify", "functions", "bin", binName),
+    join(process.cwd(), "bin", binName),
+    join(currentDir, "bin", binName)
+  ];
+
+  const binPath = binPaths.find(p => existsSync(p));
+  if (binPath) {
+    pythonCmd = binPath;
+    ytDlpArgs = [];
+  } else {
+    // default/fallback
+    pythonCmd = "python";
+    ytDlpArgs = ["-m", "yt_dlp"];
   }
 }
 
@@ -41,19 +67,21 @@ const CACHE_TTL_MS = 30 * 60 * 1000;
 const MAX_OPTIONS_PER_ENTRY = 24;
 const BRAND_SUFFIX = "getintodevice.com";
 const downloadCache = new Map();
+const videoInfoCache = new Map();
+const INFO_CACHE_TTL_MS = 10 * 60 * 1000; // Cache metadata for 10 minutes
 
 const PLATFORM_DEFINITIONS = [
   {
     key: "youtube",
     label: "YouTube",
     icon: "YT",
-    match: ["youtube", "youtu.be", "youtube.com", "youtube shorts"]
+    match: ["youtube", "youtu.be", "youtube.com", "youtube shorts", "shorts"]
   },
   {
     key: "tiktok",
     label: "TikTok",
     icon: "TT",
-    match: ["tiktok", "douyin"]
+    match: ["tiktok", "tiktok.com"]
   },
   {
     key: "instagram",
@@ -65,7 +93,7 @@ const PLATFORM_DEFINITIONS = [
     key: "facebook",
     label: "Facebook",
     icon: "FB",
-    match: ["facebook", "fb.watch", "fb.com"]
+    match: ["facebook", "fb.watch", "fb.com", "facebook.com"]
   },
   {
     key: "twitter",
@@ -74,28 +102,202 @@ const PLATFORM_DEFINITIONS = [
     match: ["twitter", "x.com", "tweet"]
   },
   {
+    key: "pinterest",
+    label: "Pinterest",
+    icon: "PI",
+    match: ["pinterest", "pin.it", "pinterest.com"]
+  },
+  {
+    key: "linkedin",
+    label: "LinkedIn",
+    icon: "LN",
+    match: ["linkedin", "linkedin.com"]
+  },
+  {
+    key: "threads",
+    label: "Threads",
+    icon: "TH",
+    match: ["threads.net", "threads"]
+  },
+  {
     key: "vimeo",
     label: "Vimeo",
     icon: "VI",
-    match: ["vimeo"]
+    match: ["vimeo", "vimeo.com"]
   },
   {
-    key: "reddit",
-    label: "Reddit",
-    icon: "RD",
-    match: ["reddit"]
+    key: "snapchat",
+    label: "Snapchat",
+    icon: "SC",
+    match: ["snapchat", "snapchat.com"]
+  },
+  {
+    key: "rumble",
+    label: "Rumble",
+    icon: "RM",
+    match: ["rumble", "rumble.com"]
+  },
+  {
+    key: "tumblr",
+    label: "Tumblr",
+    icon: "TM",
+    match: ["tumblr", "tumblr.com"]
+  },
+  {
+    key: "streamable",
+    label: "Streamable",
+    icon: "ST",
+    match: ["streamable", "streamable.com"]
+  },
+  {
+    key: "bitchute",
+    label: "BitChute",
+    icon: "BC",
+    match: ["bitchute", "bitchute.com"]
+  },
+  {
+    key: "bandcamp",
+    label: "Bandcamp",
+    icon: "BCM",
+    match: ["bandcamp", "bandcamp.com"]
   },
   {
     key: "soundcloud",
     label: "SoundCloud",
     icon: "SC",
-    match: ["soundcloud"]
+    match: ["soundcloud", "soundcloud.com"]
   },
   {
-    key: "pinterest",
-    label: "Pinterest",
-    icon: "PI",
-    match: ["pinterest", "pin.it"]
+    key: "ifunny",
+    label: "iFunny",
+    icon: "IF",
+    match: ["ifunny", "ifunny.co"]
+  },
+  {
+    key: "douyin",
+    label: "Douyin",
+    icon: "DY",
+    match: ["douyin", "douyin.com"]
+  },
+  {
+    key: "bluesky",
+    label: "Bluesky",
+    icon: "BS",
+    match: ["bsky.app", "bluesky"]
+  },
+  {
+    key: "kwai",
+    label: "Kwai",
+    icon: "KW",
+    match: ["kwai", "kwai.com"]
+  },
+  {
+    key: "telegram",
+    label: "Telegram",
+    icon: "TG",
+    match: ["telegram", "t.me"]
+  },
+  {
+    key: "canva",
+    label: "Canva",
+    icon: "CV",
+    match: ["canva", "canva.com"]
+  },
+  {
+    key: "reddit",
+    label: "Reddit",
+    icon: "RD",
+    match: ["reddit", "reddit.com", "v.redd.it"]
+  },
+  {
+    key: "likee",
+    label: "Likee",
+    icon: "LK",
+    match: ["likee", "likee.video"]
+  },
+  {
+    key: "terabox",
+    label: "TeraBox",
+    icon: "TB",
+    match: ["terabox", "terabox.com"]
+  },
+  {
+    key: "mixcloud",
+    label: "MixCloud",
+    icon: "MC",
+    match: ["mixcloud", "mixcloud.com"]
+  },
+  {
+    key: "lemon8",
+    label: "Lemon8",
+    icon: "L8",
+    match: ["lemon8", "lemon8-app.com"]
+  },
+  {
+    key: "vk",
+    label: "VK",
+    icon: "VK",
+    match: ["vk.com", "vkontakte"]
+  },
+  {
+    key: "dailymotion",
+    label: "Dailymotion",
+    icon: "DM",
+    match: ["dailymotion", "dai.ly"]
+  },
+  {
+    key: "mx-takatak",
+    label: "MX TakaTak",
+    icon: "MX",
+    match: ["takatak", "mxtakatak"]
+  },
+  {
+    key: "whatsapp",
+    label: "WhatsApp",
+    icon: "WDP",
+    match: ["whatsapp", "whatsapp.com"]
+  },
+  {
+    key: "rednote",
+    label: "RedNote",
+    icon: "RN",
+    match: ["rednote", "xiaohongshu", "xhslink"]
+  },
+  {
+    key: "metaai",
+    label: "Meta AI",
+    icon: "MAI",
+    match: ["meta.ai", "metaai"]
+  },
+  {
+    key: "kick",
+    label: "Kick",
+    icon: "KK",
+    match: ["kick.com", "kick"]
+  },
+  {
+    key: "9gag",
+    label: "9GAG",
+    icon: "9G",
+    match: ["9gag", "9gag.com"]
+  },
+  {
+    key: "twitch",
+    label: "Twitch",
+    icon: "TW",
+    match: ["twitch", "twitch.tv"]
+  },
+  {
+    key: "loom",
+    label: "Loom",
+    icon: "LM",
+    match: ["loom.com", "loom"]
+  },
+  {
+    key: "sharechat",
+    label: "ShareChat",
+    icon: "SC",
+    match: ["sharechat", "sharechat.com"]
   }
 ];
 
@@ -501,11 +703,31 @@ const buildPrimaryActions = (downloads, { sourceUrl, title }) => {
   };
 };
 
+const cleanInfoCache = () => {
+  const now = Date.now();
+  for (const [key, item] of videoInfoCache) {
+    if (item.expiresAt <= now) videoInfoCache.delete(key);
+  }
+};
+
 const runYtDlp = async (url) => {
   try {
     const { stdout } = await execFileAsync(
       pythonCmd,
-      [...ytDlpArgs, "--dump-single-json", "--skip-download", "--no-warnings", url],
+      [
+        ...ytDlpArgs,
+        "--dump-single-json",
+        "--skip-download",
+        "--no-warnings",
+        "--no-playlist",
+        "--no-check-formats",
+        "--no-check-certificate",
+        "--no-call-home",
+        "--extractor-args", "youtube:skip=hls,dash",
+        "--youtube-skip-dash-manifest",
+        "--youtube-skip-hls-manifest",
+        url
+      ],
       {
         encoding: "utf8",
         env: {
@@ -528,10 +750,61 @@ const runYtDlp = async (url) => {
         "Network permission blocked yt-dlp. Allow Python/Node through Windows Firewall or run the app outside the restricted sandbox."
       );
     }
-    if (/private|login|cookies|not available|unsupported|unable to extract|unable to download webpage|http error 404/i.test(stderr)) {
+    if (/private|login|cookies|not available|unsupported|unable to extract|unable to download webpage|http error 404|Cannot parse data/i.test(stderr)) {
       throw new Error("This video is private, unsupported, unavailable, or needs cookies/login access.");
     }
     throw new Error(stderr.split("\n").find(Boolean) || "Could not extract media from this URL.");
+  }
+};
+
+export const normalizeUrl = (urlString) => {
+  try {
+    const url = new URL(urlString);
+    
+    // YouTube
+    if (url.hostname.includes("youtube.com") || url.hostname.includes("youtu.be")) {
+      const v = url.searchParams.get("v");
+      const cleanUrl = new URL(url.origin + url.pathname);
+      if (v) cleanUrl.searchParams.set("v", v);
+      return cleanUrl.toString();
+    }
+    
+    // Social / media platforms (strip all tracking queries)
+    if (
+      url.hostname.includes("instagram.com") ||
+      url.hostname.includes("instagr.am") ||
+      url.hostname.includes("tiktok.com") ||
+      url.hostname.includes("twitter.com") ||
+      url.hostname.includes("x.com") ||
+      url.hostname.includes("pinterest.com") ||
+      url.hostname.includes("pin.it") ||
+      url.hostname.includes("threads.net") ||
+      url.hostname.includes("vimeo.com") ||
+      url.hostname.includes("linkedin.com") ||
+      url.hostname.includes("snapchat.com")
+    ) {
+      return url.origin + url.pathname.replace(/\/+$/, "");
+    }
+    
+    // Facebook
+    if (url.hostname.includes("facebook.com") || url.hostname.includes("fb.watch") || url.hostname.includes("fb.com")) {
+      const v = url.searchParams.get("v");
+      if (v) {
+        const cleanUrl = new URL(url.origin + url.pathname);
+        cleanUrl.searchParams.set("v", v);
+        return cleanUrl.toString();
+      }
+      return url.origin + url.pathname.replace(/\/+$/, "");
+    }
+    
+    // General fallback: delete UTM parameters, Facebook click IDs, and YouTube sharing tokens
+    const stripParams = ["utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content", "fbclid", "gclid", "si"];
+    for (const p of stripParams) {
+      url.searchParams.delete(p);
+    }
+    return url.toString().replace(/\/+$/, "");
+  } catch {
+    return urlString;
   }
 };
 
@@ -540,7 +813,21 @@ export const fetchVideoDetails = async (url) => {
     throw new Error("Please enter a valid public video URL.");
   }
 
-  const data = await runYtDlp(url);
+  const normalized = normalizeUrl(url);
+
+  cleanInfoCache();
+  
+  let data;
+  const cached = videoInfoCache.get(normalized);
+  if (cached && cached.expiresAt > Date.now()) {
+    data = cached.data;
+  } else {
+    data = await runYtDlp(normalized);
+    videoInfoCache.set(normalized, {
+      data,
+      expiresAt: Date.now() + INFO_CACHE_TTL_MS
+    });
+  }
   const entries = Array.isArray(data.entries) && data.entries.length ? data.entries.filter(Boolean) : [data];
   const title = String(pick(data, ["title", "fulltitle", "playlist_title"]) || "Social media download");
   const thumbnail =

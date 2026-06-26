@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en" data-page-key="__PAGE_KEY__">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>__PAGE_TITLE__</title>
+    <meta name="description" content="__PAGE_DESCRIPTION__" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="theme-color" content="#0a051b" />
+    <link rel="canonical" href="__PAGE_CANONICAL__" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Social Downloader" />
+    <meta property="og:title" content="__PAGE_TITLE__" />
+    <meta property="og:description" content="__PAGE_DESCRIPTION__" />
+    <meta property="og:url" content="__PAGE_CANONICAL__" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="__PAGE_TITLE__" />
+    <meta name="twitter:description" content="__PAGE_DESCRIPTION__" />
+    
+    <!-- Premium Fonts and Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    
+    <link rel="stylesheet" href="/styles.css" />
+    <style id="theme-style">
+      :root {
+        --theme-a: __THEME_A__;
+        --theme-b: __THEME_B__;
+        --theme-accent: __THEME_ACCENT__;
+        --theme-hot: __THEME_HOT__;
+        --theme-button: __THEME_BUTTON__;
+        --theme-cta: __THEME_CTA__;
+      }
+    </style>
+    <script type="application/ld+json">
+      __APP_SCHEMA__
+    </script>
+    __API_BASE_SCRIPT__
+  </head>
+  <body>
+    <main class="app-shell">
+      <!-- Glow Backdrops -->
+      <div class="ambient-glow bg-glow-1" aria-hidden="true"></div>
+      <div class="ambient-glow bg-glow-2" aria-hidden="true"></div>
+      <div class="ambient-glow bg-glow-3" aria-hidden="true"></div>
+
+      <nav class="topbar" id="top" aria-label="Primary">
+        <a class="brand" href="/">
+          <span class="brand-mark">SD</span>
+          <span class="brand-text">Social Downloader</span>
+        </a>
+        <div class="nav-links" aria-label="Downloader pages">
+          <a href="/tiktok-video-downloader">
+            <span class="material-symbols-outlined nav-icon">video_library</span>
+            <span>TikTok</span>
+          </a>
+          <a href="/instagram-reels-downloader">
+            <span class="material-symbols-outlined nav-icon">camera_roll</span>
+            <span>Instagram</span>
+          </a>
+          <a href="/youtube-shorts-downloader">
+            <span class="material-symbols-outlined nav-icon">play_circle</span>
+            <span>YouTube</span>
+          </a>
+          <a href="/facebook-video-downloader">
+            <span class="material-symbols-outlined nav-icon">public</span>
+            <span>Facebook</span>
+          </a>
+          <a href="/twitter-video-downloader">
+            <span class="material-symbols-outlined nav-icon">close</span>
+            <span>X</span>
+          </a>
+          <a href="/pinterest-video-downloader">
+            <span class="material-symbols-outlined nav-icon">bookmarks</span>
+            <span>Pinterest</span>
+          </a>
+          <a href="/blog" class="active">
+            <span class="material-symbols-outlined nav-icon">rss_feed</span>
+            <span>Blog</span>
+          </a>
+        </div>
+      </nav>
+
+      <article class="blog-content-wrapper glass-panel">
+        <header class="blog-article-header">
+          <div class="blog-article-meta">
+            <span class="category">Article</span>
+            <span>•</span>
+            <span>__BLOG_DATE__</span>
+            <span>•</span>
+            <span>__BLOG_READ_TIME__</span>
+          </div>
+          <h1>__BLOG_TITLE__</h1>
+          <p class="subtitle" style="margin-bottom: 0;">By __BLOG_AUTHOR__</p>
+        </header>
+
+        <section class="blog-article-body">
+          __BLOG_CONTENT__
+        </section>
+
+        <!-- CTA Box to tool -->
+        <section class="glass-panel" style="padding: 32px; border-radius: 16px; margin-top: 48px; border: 1px solid var(--theme-accent); text-align: center;">
+          <span class="material-symbols-outlined" style="font-size: 3rem; color: var(--theme-accent); display: block; margin-inline: auto; margin-bottom: 12px;">download</span>
+          <h3 style="margin-bottom: 12px; font-size: 1.5rem; color: var(--text-primary);">Ready to download media clips?</h3>
+          <p style="color: var(--text-secondary); margin-bottom: 24px; font-size: 0.95rem; line-height: 1.5;">
+            Paste any public video link from TikTok, Instagram, Facebook, X, or Pinterest to download clean HD copies in seconds.
+          </p>
+          <a href="/" class="primary-action" style="display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 32px; border-radius: 12px; font-weight: 700; color: #fff; background: var(--theme-button); box-shadow: 0 8px 24px color-mix(in srgb, var(--theme-accent) 25%, transparent);">
+            <span>Open Downloader Workspace</span>
+          </a>
+        </section>
+      </article>
+
+      <section class="blog-grid-section glass-panel" id="latest-blogs-section" style="margin-top: 48px; padding: 32px; max-width: 800px; margin-inline: auto; margin-bottom: 48px;">
+        <div style="text-align: center; margin-bottom: 32px;">
+          <p class="eyebrow">Other Reads</p>
+          <h2>Latest from our blog</h2>
+        </div>
+        <div class="blog-grid" id="blogs-container">
+          __BLOGS_LIST_CONTAINER__
+        </div>
+      </section>
+
+      <nav class="bottom-app-nav" aria-label="App navigation">
+        <a href="/">
+          <span class="material-symbols-outlined">download</span>
+          <span>Tool</span>
+        </a>
+        <a href="/blog" class="active">
+          <span class="material-symbols-outlined">rss_feed</span>
+          <span>Blog</span>
+        </a>
+      </nav>
+    </main>
+
+    <script src="/app.js?v=1.0.1" type="module"></script>
+  </body>
+</html>

@@ -23,7 +23,6 @@ const highMeta = document.querySelector("#high-meta");
 const normalMeta = document.querySelector("#normal-meta");
 const thumbMeta = document.querySelector("#thumb-meta");
 const sourceLink = document.querySelector("#source-link");
-const platforms = document.querySelector("#platforms");
 const platformIcon = document.querySelector("#platform-icon");
 const creatorCard = document.querySelector("#creator-card");
 const creatorAvatar = document.querySelector("#creator-avatar");
@@ -49,166 +48,13 @@ const assetUrl = (url) => {
   return apiUrl(url);
 };
 
-const platformMeta = {
-  youtube: { label: "YouTube", icon: "YT", className: "platform-youtube" },
-  tiktok: { label: "TikTok", icon: "TT", className: "platform-tiktok" },
-  instagram: { label: "Instagram", icon: "IG", className: "platform-instagram" },
-  facebook: { label: "Facebook", icon: "FB", className: "platform-facebook" },
-  twitter: { label: "X / Twitter", icon: "X", className: "platform-twitter" },
-  pinterest: { label: "Pinterest", icon: "PI", className: "platform-pinterest" },
-  vimeo: { label: "Vimeo", icon: "VI", className: "platform-vimeo" },
-  reddit: { label: "Reddit", icon: "RD", className: "platform-reddit" },
-  soundcloud: { label: "SoundCloud", icon: "SC", className: "platform-soundcloud" },
-  generic: { label: "Generic video pages", icon: "SD", className: "platform-generic" }
-};
-
-const pageContent = {
-  home: {
-    eyebrow: "Creator media workspace",
-    title: "Download clean social media assets.",
-    subtitle: "Paste a public link, preview the media, inspect creator metadata, and save the best available video or thumbnail.",
-    supportedTitle: "Social media video downloader",
-    supportedCopy: "One focused workspace for TikTok, Instagram Reels, YouTube Shorts, Facebook, X, Pinterest, and generic video links.",
-    placeholder: "Paste TikTok, Instagram, YouTube, Facebook, X...",
-    howToUseTitle: "How to use Social Downloader",
-    steps: [
-      { title: "Copy public link", desc: "Find the public shareable video link on platforms like TikTok, Instagram, YouTube, or Pinterest.", icon: "content_copy" },
-      { title: "Paste & analyze link", desc: "Paste the social media link in the input box above and click the Analyze button to parse creator assets.", icon: "link" },
-      { title: "Free HD download", desc: "Select your preferred format (HD Video, Audio, or Thumbnails) and download instantly.", icon: "download_for_offline" }
-    ]
-  },
-  tiktok: {
-    eyebrow: "TikTok video downloader",
-    title: "Download TikTok videos without the clutter.",
-    subtitle: "Analyze public TikTok links, find no-watermark options when available, and save HD video or thumbnails.",
-    supportedTitle: "TikTok video downloader no watermark",
-    supportedCopy: "Built around high-intent TikTok keywords: no watermark, MP4, HD video, thumbnails, and creator metadata.",
-    placeholder: "Paste a TikTok video URL...",
-    howToUseTitle: "How to download TikTok videos",
-    steps: [
-      { title: "Copy TikTok video link", desc: "Open the TikTok app, locate the video or slideshow you want, and copy its public share link.", icon: "content_copy" },
-      { title: "Use TikTok link analyzer", desc: "Paste the copied TikTok video link into our analyzer field above to extract raw source formats.", icon: "link" },
-      { title: "Download TikTok no watermark", desc: "Click the download button next to the high quality MP4 to save the clean video without watermark logo.", icon: "download_for_offline" }
-    ]
-  },
-  instagram: {
-    eyebrow: "Instagram Reels downloader",
-    title: "Save Instagram Reels and thumbnails.",
-    subtitle: "Paste a public Reel or post link to preview media, profile details, and clean download options.",
-    supportedTitle: "Instagram reels downloader",
-    supportedCopy: "Targeted for reels, Instagram video downloader, HD MP4 downloads, and public creator previews.",
-    placeholder: "Paste an Instagram Reel URL...",
-    howToUseTitle: "How to download Instagram Reels",
-    steps: [
-      { title: "Copy Instagram Reels link", desc: "Go to Instagram, tap the share sheet on any Reel, post, or video, and copy the public URL.", icon: "content_copy" },
-      { title: "Run Reels video extractor", desc: "Paste the link into the extractor input above to gather high-resolution assets and creator profiles.", icon: "link" },
-      { title: "Download HD Reels MP4", desc: "Choose the best quality download format to save the video file directly to your local device.", icon: "download_for_offline" }
-    ]
-  },
-  youtube: {
-    eyebrow: "YouTube Shorts downloader",
-    title: "Download YouTube Shorts in a creator-ready view.",
-    subtitle: "Analyze Shorts links, view channel metadata, and save available video or thumbnail assets.",
-    supportedTitle: "YouTube shorts downloader",
-    supportedCopy: "Supports YouTube Shorts downloader, HD video downloader, MP4 downloads, and thumbnail downloads.",
-    placeholder: "Paste a YouTube Shorts URL...",
-    howToUseTitle: "How to download YouTube Shorts",
-    steps: [
-      { title: "Copy YouTube Shorts URL", desc: "Open the YouTube app or website, find the Shorts video or standard clip, and copy its public URL.", icon: "content_copy" },
-      { title: "Process Shorts link analyzer", desc: "Paste the link into the parser box above to resolve HD resolutions, formats, and audio tracks.", icon: "link" },
-      { title: "Save HD YouTube video", desc: "Download the video as a high-quality MP4 file or save the audio track as a clear MP3.", icon: "download_for_offline" }
-    ]
-  },
-  facebook: {
-    eyebrow: "Facebook video downloader",
-    title: "Save public Facebook videos.",
-    subtitle: "Analyze public Facebook media links and download available MP4 assets with metadata.",
-    supportedTitle: "Facebook video downloader",
-    supportedCopy: "Focused on public Facebook video download, HD MP4 assets, thumbnails, and source previews.",
-    placeholder: "Paste a Facebook video URL...",
-    howToUseTitle: "How to download Facebook videos",
-    steps: [
-      { title: "Copy Facebook video link", desc: "Navigate to the public Facebook video, click the share menu, and select copy link.", icon: "content_copy" },
-      { title: "Use Facebook media parser", desc: "Paste the video link into the analyzer to parse the SD/HD stream locations and thumbnails.", icon: "link" },
-      { title: "Download Facebook videos", desc: "Press the high-quality download button to save the MP4 video file straight to your folder.", icon: "download_for_offline" }
-    ]
-  },
-  twitter: {
-    eyebrow: "Twitter X video downloader",
-    title: "Download public X and Twitter videos.",
-    subtitle: "Paste a public post link to extract available video formats, thumbnails, and creator metadata.",
-    supportedTitle: "Twitter X video downloader",
-    supportedCopy: "Built for X video downloader, Twitter video download, MP4 assets, and public post previews.",
-    placeholder: "Paste an X or Twitter video URL...",
-    howToUseTitle: "How to download X / Twitter videos",
-    steps: [
-      { title: "Copy X video post link", desc: "Click the share icon on the tweet containing the video or GIF and copy the link.", icon: "content_copy" },
-      { title: "Run X / Twitter media fetcher", desc: "Paste the tweet link into the analyzer to search for available MP4 file resolutions.", icon: "link" },
-      { title: "Save HD X video asset", desc: "Select the desired resolution size and download the clean video file to your system.", icon: "download_for_offline" }
-    ]
-  },
-  pinterest: {
-    eyebrow: "Pinterest video downloader",
-    title: "Save Pinterest videos and pin thumbnails.",
-    subtitle: "Analyze public pins, preview media, and download available video or thumbnail assets.",
-    supportedTitle: "Pinterest video downloader",
-    supportedCopy: "Targets Pinterest video download, pin thumbnail download, HD media, and public creator data.",
-    placeholder: "Paste a Pinterest video URL...",
-    howToUseTitle: "How to download Pinterest videos",
-    steps: [
-      { title: "Copy Pinterest Pin link", desc: "Open the Pin you wish to save, click share, and copy the link of the video pin.", icon: "content_copy" },
-      { title: "Open Pinterest Pin inspector", desc: "Paste the copied URL in the input above to decode the direct media streams and images.", icon: "link" },
-      { title: "Save HD Pin downloader", desc: "Select the high-quality MP4 file or choose the HD thumbnail image to download locally.", icon: "download_for_offline" }
-    ]
-  }
-};
-
-const supportedPlatforms = [
-  "TikTok video downloader",
-  "Instagram Reels downloader",
-  "YouTube Shorts downloader",
-  "Facebook video downloader",
-  "Twitter X video downloader",
-  "Pinterest video downloader",
-  "HD video downloader",
-  "Download video thumbnail",
-  "MP4 downloader",
-  "No-watermark options",
-  "Generic video pages"
-];
-
 const applyPageContent = () => {
-  const content = pageContent[pageKey] || pageContent.home;
-  const meta = platformMeta[pageKey] || platformMeta.generic;
-  document.querySelector("#page-eyebrow").textContent = content.eyebrow;
-  document.querySelector("#page-title").textContent = content.title;
-  document.querySelector("#page-subtitle").textContent = content.subtitle;
-  document.querySelector("#supported-title").textContent = content.supportedTitle;
-  document.querySelector("#supported-copy").textContent = content.supportedCopy;
-  input.placeholder = content.placeholder;
-  brandMark.textContent = pageKey === "home" ? "SD" : meta.icon;
-  brandMark.className = `brand-mark ${meta.className}`;
+  // Update header navigation active styles
   document.querySelectorAll(".nav-links a").forEach((link) => {
     const active = link.getAttribute("href") === window.location.pathname;
     link.classList.toggle("active", active);
     if (active) link.setAttribute("aria-current", "page");
   });
-
-  // Dynamic tutorial steps updates
-  if (content.howToUseTitle) {
-    document.querySelector("#how-to-use-title").textContent = content.howToUseTitle;
-  }
-  if (content.steps && content.steps.length === 3) {
-    content.steps.forEach((step, i) => {
-      const index = i + 1;
-      const titleEl = document.querySelector(`#step-${index}-title`);
-      const descEl = document.querySelector(`#step-${index}-desc`);
-      const iconEl = document.querySelector(`#step-${index}-icon`);
-      if (titleEl) titleEl.textContent = step.title;
-      if (descEl) descEl.textContent = step.desc;
-      if (iconEl) iconEl.textContent = step.icon;
-    });
-  }
 };
 
 const setStatus = (message, isError = false) => {
@@ -285,6 +131,19 @@ const makeBadge = (value) => {
   badge.className = "result-badge";
   badge.textContent = value;
   return badge;
+};
+
+const platformMeta = {
+  youtube: { className: "platform-youtube", icon: "YT", label: "YouTube" },
+  tiktok: { className: "platform-tiktok", icon: "TT", label: "TikTok" },
+  instagram: { className: "platform-instagram", icon: "IG", label: "Instagram" },
+  facebook: { className: "platform-facebook", icon: "FB", label: "Facebook" },
+  twitter: { className: "platform-twitter", icon: "X", label: "X / Twitter" },
+  pinterest: { className: "platform-pinterest", icon: "PI", label: "Pinterest" },
+  vimeo: { className: "platform-vimeo", icon: "VI", label: "Vimeo" },
+  reddit: { className: "platform-reddit", icon: "RD", label: "Reddit" },
+  soundcloud: { className: "platform-soundcloud", icon: "SC", label: "SoundCloud" },
+  generic: { className: "platform-generic", icon: "SD", label: "Social Downloader" }
 };
 
 const setPlatformIcon = (key, label, icon) => {
@@ -496,38 +355,40 @@ const renderDownloadCards = (data, downloads) => {
   );
 };
 
-form.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const url = input.value.trim();
-  if (!url) return;
+if (form) {
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const url = input.value.trim();
+    if (!url) return;
 
-  setLoading(true, "Analyzing link...", "Fetching public metadata with yt-dlp");
-  startProcessLoader();
-  result.hidden = true;
-  creatorCard.hidden = true;
-  setStatus("");
+    setLoading(true, "Analyzing link...", "Fetching public metadata with yt-dlp");
+    startProcessLoader();
+    if (result) result.hidden = true;
+    if (creatorCard) creatorCard.hidden = true;
+    setStatus("");
 
-  try {
-    const response = await fetch(apiUrl("/api/video-info"), {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ url })
-    });
+    try {
+      const response = await fetch(apiUrl("/api/video-info"), {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ url })
+      });
 
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || data.error) {
-      throw new Error(data.error || "Could not fetch media details.");
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.error) {
+        throw new Error(data.error || "Could not fetch media details.");
+      }
+
+      finishProcessLoader();
+      renderResults(data);
+      setStatus("Links are ready.");
+    } catch (error) {
+      setStatus(error.message || "This public link could not be analyzed. Try another public media URL.", true);
+    } finally {
+      setLoading(false);
     }
-
-    finishProcessLoader();
-    renderResults(data);
-    setStatus("Links are ready.");
-  } catch (error) {
-    setStatus(error.message || "This public link could not be analyzed. Try another public media URL.", true);
-  } finally {
-    setLoading(false);
-  }
-});
+  });
+}
 
 filterButtons.forEach((buttonEl) => {
   buttonEl.addEventListener("click", () => {
@@ -550,14 +411,7 @@ bottomNavLinks.forEach((link) => {
 
 applyPageContent();
 
-platforms.replaceChildren(
-  ...supportedPlatforms.map((platform) => {
-    const chip = document.createElement("span");
-    chip.className = "platform-chip";
-    chip.textContent = platform;
-    return chip;
-  })
-);
+
 
 document.addEventListener("click", (event) => {
   const target = event.target.closest("a.primary-action, a.download-link");

@@ -24,6 +24,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
     
     <link rel="stylesheet" href="/styles.css" />
+    <style id="theme-style">
+      :root {
+        --theme-a: __THEME_A__;
+        --theme-b: __THEME_B__;
+        --theme-accent: __THEME_ACCENT__;
+        --theme-hot: __THEME_HOT__;
+        --theme-button: __THEME_BUTTON__;
+        --theme-cta: __THEME_CTA__;
+      }
+    </style>
     <script type="application/ld+json">
       __APP_SCHEMA__
     </script>
@@ -38,7 +48,7 @@
 
       <nav class="topbar" id="top" aria-label="Primary">
         <a class="brand" href="/">
-          <span class="brand-mark">SD</span>
+          <span class="brand-mark">__BRAND_BADGE__</span>
           <span class="brand-text">Social Downloader</span>
         </a>
         <div class="nav-links" aria-label="Downloader pages">
@@ -66,15 +76,19 @@
             <span class="material-symbols-outlined nav-icon">bookmarks</span>
             <span>Pinterest</span>
           </a>
+          <a href="/blog">
+            <span class="material-symbols-outlined nav-icon">rss_feed</span>
+            <span>Blog</span>
+          </a>
         </div>
       </nav>
 
       <section class="hero" id="tool">
         <div class="hero-copy">
-          <p class="eyebrow" id="page-eyebrow">Creator media workspace</p>
-          <h1 id="page-title">Download clean social media assets.</h1>
+          <p class="eyebrow" id="page-eyebrow">__PAGE_EYEBROW__</p>
+          <h1 id="page-title">__PAGE_HERO_TITLE__</h1>
           <p class="subtitle" id="page-subtitle">
-            Paste a public link, preview the media, inspect creator metadata, and save the best available video or thumbnail.
+            __PAGE_HERO_SUBTITLE__
           </p>
         </div>
 
@@ -90,7 +104,7 @@
                 id="url-input"
                 name="url"
                 type="url"
-                placeholder="Paste TikTok, Instagram, YouTube, Facebook, X..."
+                placeholder="__INPUT_PLACEHOLDER__"
                 autocomplete="off"
                 required
               />
@@ -203,48 +217,21 @@
           <h2 id="how-to-use-title">How to use the tool</h2>
         </div>
         <div class="steps-grid" id="steps-grid">
-          <div class="step-card">
-            <div class="step-icon-wrapper">
-              <span class="material-symbols-outlined step-icon" id="step-1-icon">content_copy</span>
-              <span class="step-number">01</span>
-            </div>
-            <div class="step-info">
-              <h3 id="step-1-title">Copy URL</h3>
-              <p id="step-1-desc">Find the media post on the platform and copy its public link.</p>
-            </div>
-          </div>
-          <div class="step-card">
-            <div class="step-icon-wrapper">
-              <span class="material-symbols-outlined step-icon" id="step-2-icon">link</span>
-              <span class="step-number">02</span>
-            </div>
-            <div class="step-info">
-              <h3 id="step-2-title">Paste & Analyze</h3>
-              <p id="step-2-desc">Paste the link into the analyzer field and click the Analyze button.</p>
-            </div>
-          </div>
-          <div class="step-card">
-            <div class="step-icon-wrapper">
-              <span class="material-symbols-outlined step-icon" id="step-3-icon">download_for_offline</span>
-              <span class="step-number">03</span>
-            </div>
-            <div class="step-info">
-              <h3 id="step-3-title">Save Media</h3>
-              <p id="step-3-desc">Choose your preferred quality format and click download to save the asset.</p>
-            </div>
-          </div>
+          __HOW_TO_USE_STEPS__
         </div>
       </section>
 
-      <section class="supported glass-panel" id="platforms-section">
-        <div>
+      <section class="supported glass-panel all-tools-section" id="platforms-section">
+        <div style="text-align: center; margin-bottom: 32px; width: 100%;">
           <p class="eyebrow">Keyword-focused tools</p>
-          <h2 id="supported-title">Social media video downloader</h2>
-          <p id="supported-copy">
-            Built for public media links from short-form platforms, social feeds, creator channels, and generic video pages.
+          <h2 id="supported-title">__SUPPORTED_TITLE__</h2>
+          <p id="supported-copy" style="max-width: 600px; margin-inline: auto;">
+            __SUPPORTED_COPY__
           </p>
         </div>
-        <div id="platforms" class="platforms"></div>
+        <div class="tools-grid" id="all-tools-grid" style="width: 100%;">
+          __ALL_TOOLS_GRID__
+        </div>
       </section>
 
       <section class="seo-grid" id="features" aria-label="Downloader features">
@@ -296,45 +283,32 @@
       <section class="faq glass-panel" id="faq">
         <p class="eyebrow">FAQ</p>
         <h2 id="faq-title">Video downloader questions</h2>
-        <details open>
-          <summary>Which links work best?</summary>
-          <p>Public video, reel, short, pin, and post links work best. Private, DRM, login-only, or region-blocked media may fail.</p>
-        </details>
-        <details>
-          <summary>Can it download thumbnails?</summary>
-          <p>Yes. If a public thumbnail is available, the app adds it as a separate ready asset.</p>
-        </details>
-        <details>
-          <summary>Does it scrape private profile data?</summary>
-          <p>No. It only shows public metadata returned by yt-dlp for the provided media URL.</p>
-        </details>
+        __FAQ_LIST__
+      </section>
+
+      <section class="blog-grid-section glass-panel" id="latest-blogs-section" style="margin-top: 40px; padding: 32px;">
+        <div style="text-align: center; margin-bottom: 32px;">
+          <p class="eyebrow">Insights & Guides</p>
+          <h2>Latest from our blog</h2>
+        </div>
+        <div class="blog-grid" id="blogs-container">
+          __BLOGS_LIST_CONTAINER__
+        </div>
       </section>
 
       <nav class="bottom-app-nav" aria-label="App navigation">
-        <a href="#tool" class="active">
+        <a href="/" class="active">
           <span class="material-symbols-outlined">download</span>
           <span>Tool</span>
         </a>
-        <a href="#platforms-section">
-          <span class="material-symbols-outlined">layers</span>
-          <span>Pages</span>
-        </a>
-        <a href="#features">
-          <span class="material-symbols-outlined">featured_play_list</span>
-          <span>Features</span>
-        </a>
-        <a href="#growth">
-          <span class="material-symbols-outlined">trending_up</span>
-          <span>Growth</span>
-        </a>
-        <a href="#faq">
-          <span class="material-symbols-outlined">help</span>
-          <span>FAQ</span>
+        <a href="/blog">
+          <span class="material-symbols-outlined">rss_feed</span>
+          <span>Blog</span>
         </a>
       </nav>
     </main>
 
-    <script src="/app.js" type="module"></script>
+    <script src="/app.js?v=1.0.1" type="module"></script>
   </body>
 </html>
 

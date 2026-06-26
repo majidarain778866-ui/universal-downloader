@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en" data-page-key="__PAGE_KEY__">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>__PAGE_TITLE__</title>
+    <meta name="description" content="__PAGE_DESCRIPTION__" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="theme-color" content="#0a051b" />
+    <link rel="canonical" href="__PAGE_CANONICAL__" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Social Downloader" />
+    <meta property="og:title" content="__PAGE_TITLE__" />
+    <meta property="og:description" content="__PAGE_DESCRIPTION__" />
+    <meta property="og:url" content="__PAGE_CANONICAL__" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="__PAGE_TITLE__" />
+    <meta name="twitter:description" content="__PAGE_DESCRIPTION__" />
+    
+    <!-- Premium Fonts and Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+    
+    <link rel="stylesheet" href="/styles.css" />
+    <style id="theme-style">
+      :root {
+        --theme-a: __THEME_A__;
+        --theme-b: __THEME_B__;
+        --theme-accent: __THEME_ACCENT__;
+        --theme-hot: __THEME_HOT__;
+        --theme-button: __THEME_BUTTON__;
+        --theme-cta: __THEME_CTA__;
+      }
+    </style>
+    <script type="application/ld+json">
+      __APP_SCHEMA__
+    </script>
+    __API_BASE_SCRIPT__
+  </head>
+  <body>
+    <main class="app-shell">
+      <!-- Glow Backdrops -->
+      <div class="ambient-glow bg-glow-1" aria-hidden="true"></div>
+      <div class="ambient-glow bg-glow-2" aria-hidden="true"></div>
+      <div class="ambient-glow bg-glow-3" aria-hidden="true"></div>
+
+      <nav class="topbar" id="top" aria-label="Primary">
+        <a class="brand" href="/">
+          <span class="brand-mark">SD</span>
+          <span class="brand-text">Social Downloader</span>
+        </a>
+        <div class="nav-links" aria-label="Downloader pages">
+          <a href="/tiktok-video-downloader">
+            <span class="material-symbols-outlined nav-icon">video_library</span>
+            <span>TikTok</span>
+          </a>
+          <a href="/instagram-reels-downloader">
+            <span class="material-symbols-outlined nav-icon">camera_roll</span>
+            <span>Instagram</span>
+          </a>
+          <a href="/youtube-shorts-downloader">
+            <span class="material-symbols-outlined nav-icon">play_circle</span>
+            <span>YouTube</span>
+          </a>
+          <a href="/facebook-video-downloader">
+            <span class="material-symbols-outlined nav-icon">public</span>
+            <span>Facebook</span>
+          </a>
+          <a href="/twitter-video-downloader">
+            <span class="material-symbols-outlined nav-icon">close</span>
+            <span>X</span>
+          </a>
+          <a href="/pinterest-video-downloader">
+            <span class="material-symbols-outlined nav-icon">bookmarks</span>
+            <span>Pinterest</span>
+          </a>
+          <a href="/blog" class="active" aria-current="page">
+            <span class="material-symbols-outlined nav-icon">rss_feed</span>
+            <span>Blog</span>
+          </a>
+        </div>
+      </nav>
+
+      <section class="blog-hero">
+        <p class="eyebrow">Industry insights & guides</p>
+        <h1>Social Media News & Comparisons</h1>
+        <p class="subtitle" style="max-width: 600px; margin-inline: auto;">
+          In-depth reviews, downloader comparisons, and growth guides written for modern content creators.
+        </p>
+      </section>
+
+      <section class="blog-grid" id="blogs-container">
+        __BLOGS_LIST_CONTAINER__
+      </section>
+
+      <nav class="bottom-app-nav" aria-label="App navigation">
+        <a href="/">
+          <span class="material-symbols-outlined">download</span>
+          <span>Tool</span>
+        </a>
+        <a href="/blog" class="active">
+          <span class="material-symbols-outlined">rss_feed</span>
+          <span>Blog</span>
+        </a>
+      </nav>
+    </main>
+
+    <script src="/app.js?v=1.0.1" type="module"></script>
+  </body>
+</html>

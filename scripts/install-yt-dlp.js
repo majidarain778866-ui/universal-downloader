@@ -16,34 +16,22 @@ const stalePath = path.join(dir, staleBinaryName);
 
 console.log(`Downloading ${downloadUrl} to ${destPath}`);
 
-const download = (url, dest) => {
-  return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
-      if (res.statusCode === 302 || res.statusCode === 301) {
-        download(res.headers.location, dest).then(resolve).catch(reject);
-      } else if (res.statusCode === 200) {
-        const file = createWriteStream(dest);
-        res.pipe(file);
-        file.on("finish", () => {
-          file.close(resolve);
-        });
-        file.on("error", (err) => {
-          unlink(dest, () => reject(err));
-        });
-      } else {
-        reject(new Error(`Failed to download: ${res.statusCode}`));
-      }
-    }).on("error", reject);
-  });
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
+
+const download = async (url, dest) => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to download: ${response.statusText} (${response.status})`);
+  }
+  const fileStream = createWriteStream(dest);
+  await pipeline(Readable.fromWeb(response.body), fileStream);
 };
 
 (async () => {
   try {
     if (!existsSync(dir)) {
       await mkdir(dir, { recursive: true });
-    }
-    if (existsSync(stalePath)) {
-      unlink(stalePath, () => {});
     }
     await download(downloadUrl, destPath);
     if (!isWin) {

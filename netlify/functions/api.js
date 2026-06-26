@@ -11,6 +11,11 @@ import { chmodSync } from "node:fs";
 
 const ffmpegPath = resolveBundledFfmpegPath();
 try { chmodSync(ffmpegPath, 0o755); } catch {}
+try {
+  if (pythonCmd && !pythonCmd.startsWith("python")) {
+    chmodSync(pythonCmd, 0o755);
+  }
+} catch {}
 
 const functionDir = fileURLToPath(new URL(".", import.meta.url));
 process.env.YTDLP_PYTHON_PATH ||= join(functionDir, "python");
@@ -30,6 +35,50 @@ const json = (body, status = 200) =>
       "content-type": "application/json; charset=utf-8"
     }
   });
+
+const streamJson = async (producer) => {
+  const encoder = new TextEncoder();
+  let interval = null;
+  let settled = false;
+
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(encoder.encode(" "));
+      interval = setInterval(() => {
+        controller.enqueue(encoder.encode(" "));
+      }, 2500);
+
+      producer()
+        .then((payload) => {
+          if (settled) return;
+          settled = true;
+          if (interval) clearInterval(interval);
+          controller.enqueue(encoder.encode(JSON.stringify(payload)));
+          controller.close();
+        })
+        .catch((error) => {
+          if (settled) return;
+          settled = true;
+          if (interval) clearInterval(interval);
+          controller.enqueue(
+            encoder.encode(JSON.stringify({ error: error?.message || "Something went wrong." }))
+          );
+          controller.close();
+        });
+    },
+    cancel() {
+      settled = true;
+      if (interval) clearInterval(interval);
+    }
+  });
+
+  return new Response(stream, {
+    headers: {
+      ...headers,
+      "content-type": "application/json; charset=utf-8"
+    }
+  });
+};
 
 const statusForError = (error) => {
   const message = String(error?.message || "");
@@ -86,8 +135,7 @@ const extensionFromContentType = (contentType, target) => {
 
 const handleVideoInfo = async (req) => {
   const body = await req.json().catch(() => ({}));
-  const info = await fetchVideoDetails(body.url);
-  return json(info);
+  return streamJson(async () => fetchVideoDetails(body.url));
 };
 
 const streamYtDlpDownload = async (cached, inline = false) => {
@@ -102,6 +150,8 @@ const streamYtDlpDownload = async (cached, inline = false) => {
     cached.ext || "mp4",
     "-f",
     cached.formatSelector || cached.formatId,
+    "--postprocessor-args",
+    "Merger:-strict -2",
     "-o",
     outputTemplate,
     cached.sourceUrl

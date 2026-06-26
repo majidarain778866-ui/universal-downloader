@@ -8,28 +8,17 @@ const downloadUrl = "https://registry.npmjs.org/@ffmpeg-installer/linux-x64/-/li
 const dir = join(process.cwd(), "netlify", "functions", "bin");
 const destPath = join(dir, "ffmpeg");
 
-const download = (url, dest) =>
-  new Promise((resolve, reject) => {
-    https.get(url, (res) => {
-      if (res.statusCode === 302 || res.statusCode === 301) {
-        download(res.headers.location, dest).then(resolve).catch(reject);
-        return;
-      }
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 
-      if (res.statusCode === 200) {
-        const file = createWriteStream(dest);
-        res.pipe(file);
-        file.on("finish", () => file.close(resolve));
-        file.on("error", (err) => {
-          if (existsSync(dest)) unlinkSync(dest);
-          reject(err);
-        });
-        return;
-      }
-
-      reject(new Error(`Failed to download: ${res.statusCode}`));
-    }).on("error", reject);
-  });
+const download = async (url, dest) => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to download: ${response.statusText} (${response.status})`);
+  }
+  const fileStream = createWriteStream(dest);
+  await pipeline(Readable.fromWeb(response.body), fileStream);
+};
 
 const extractBinary = async (archivePath, extractDir) => {
   const { spawn } = await import("node:child_process");
