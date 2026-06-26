@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip3 install --break-system-packages -U yt-dlp
 
 # Set environment variables
-ENV PORT=3000
+ENV PORT=7860
 ENV NODE_ENV=production
 
 # Create app directory
@@ -29,7 +29,7 @@ RUN npm ci --omit=dev
 COPY . .
 
 # Expose the server port
-EXPOSE 3000
+EXPOSE 7860
 
 # Run the Node server
 CMD ["node", "server.js"]

@@ -141,21 +141,38 @@ const handleVideoInfo = async (req) => {
 const streamYtDlpDownload = async (cached, inline = false) => {
   const tempDir = await mkdtemp(join(tmpdir(), "social-downloader-"));
   const outputTemplate = join(tempDir, "download.%(ext)s");
+  const isAudioMp3 = cached.type === "audio" && cached.ext === "mp3";
   const args = [
     ...ytDlpArgs,
     "--no-warnings",
     "--ffmpeg-location",
-    ffmpegPath,
-    "--merge-output-format",
-    cached.ext || "mp4",
-    "-f",
-    cached.formatSelector || cached.formatId,
-    "--postprocessor-args",
-    "Merger:-strict -2",
-    "-o",
-    outputTemplate,
-    cached.sourceUrl
+    ffmpegPath
   ];
+
+  if (isAudioMp3) {
+    args.push(
+      "-f",
+      cached.formatSelector || "bestaudio/best",
+      "-x",
+      "--audio-format",
+      "mp3",
+      "--audio-quality",
+      "0"
+    );
+  } else {
+    args.push(
+      "--merge-output-format",
+      "mp4",
+      "--remux-video",
+      "mp4",
+      "-f",
+      cached.formatSelector || cached.formatId || "bestvideo+bestaudio/best",
+      "--postprocessor-args",
+      "Merger:-strict -2"
+    );
+  }
+
+  args.push("-o", outputTemplate, cached.sourceUrl);
   const child = spawn(pythonCmd, args, {
     env: {
       ...process.env,

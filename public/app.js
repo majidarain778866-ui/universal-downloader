@@ -18,9 +18,11 @@ const options = document.querySelector("#options");
 const resultBadges = document.querySelector("#result-badges");
 const highDownload = document.querySelector("#high-download");
 const normalDownload = document.querySelector("#normal-download");
+const audioDownload = document.querySelector("#audio-download");
 const thumbnailDownload = document.querySelector("#thumbnail-download");
 const highMeta = document.querySelector("#high-meta");
 const normalMeta = document.querySelector("#normal-meta");
+const audioMeta = document.querySelector("#audio-meta");
 const thumbMeta = document.querySelector("#thumb-meta");
 const sourceLink = document.querySelector("#source-link");
 const platformIcon = document.querySelector("#platform-icon");
@@ -239,26 +241,76 @@ const renderResults = (data) => {
   const primaryActions = data.primary_actions || {};
   currentDownloads = downloads;
 
-  title.textContent = data.title || "Download ready";
+  // Truncate title and show description if long or multiline
+  const descriptionEl = document.querySelector("#description");
+  if (descriptionEl) {
+    if (data.title && (data.title.includes("\n") || data.title.length > 90)) {
+      const parts = data.title.split("\n");
+      title.textContent = parts[0].slice(0, 90) + (parts[0].length > 90 ? "..." : "");
+      descriptionEl.textContent = data.title;
+      descriptionEl.style.display = "block";
+    } else {
+      title.textContent = data.title || "Download ready";
+      descriptionEl.style.display = "none";
+    }
+  } else {
+    title.textContent = data.title || "Download ready";
+  }
+
   count.textContent = `${downloads.length} download option${downloads.length === 1 ? "" : "s"} found`;
   thumbnail.alt = data.thumbnail ? data.title || "Media thumbnail" : "";
   renderSmartPreview(data, downloads);
   setPlatformIcon(platformKey, data.platform_label, data.platform_icon);
 
+  // Stats badges (excluding views/likes/shares since they have their own grid boxes)
   resultBadges.replaceChildren(
     ...[
       data.platform_label || data.platform,
       data.creator?.name,
-      data.duration,
-      data.media?.view_count ? `${data.media.view_count} views` : "",
-      data.media?.like_count ? `${data.media.like_count} likes` : ""
+      data.duration
     ]
       .filter(Boolean)
       .map(makeBadge)
   );
 
+  // Render media stats box grid
+  const mediaStatsBox = document.querySelector("#media-stats-box");
+  if (mediaStatsBox) {
+    const media = data.media || {};
+    const views = media.view_count || "";
+    const likes = media.like_count || "";
+    const shares = media.share_count || "";
+    const duration = media.duration || data.duration || "";
+
+    const hasStats = Boolean(views || likes || shares || duration);
+    mediaStatsBox.style.display = hasStats ? "grid" : "none";
+
+    const statViewsVal = document.querySelector("#stat-views");
+    const statLikesVal = document.querySelector("#stat-likes");
+    const statSharesVal = document.querySelector("#stat-shares");
+    const statDurationVal = document.querySelector("#stat-duration");
+
+    if (statViewsVal) {
+      statViewsVal.textContent = views || "-";
+      statViewsVal.closest(".media-stat-card").style.display = views ? "flex" : "none";
+    }
+    if (statLikesVal) {
+      statLikesVal.textContent = likes || "-";
+      statLikesVal.closest(".media-stat-card").style.display = likes ? "flex" : "none";
+    }
+    if (statSharesVal) {
+      statSharesVal.textContent = shares || "-";
+      statSharesVal.closest(".media-stat-card").style.display = shares ? "flex" : "none";
+    }
+    if (statDurationVal) {
+      statDurationVal.textContent = duration || "-";
+      statDurationVal.closest(".media-stat-card").style.display = duration ? "flex" : "none";
+    }
+  }
+
   setPrimaryAction(highDownload, highMeta, primaryActions.high_quality, "Best video");
   setPrimaryAction(normalDownload, normalMeta, primaryActions.normal_quality, "Smaller video");
+  setPrimaryAction(audioDownload, audioMeta, primaryActions.audio_mp3, "Download MP3");
   setPrimaryAction(thumbnailDownload, thumbMeta, primaryActions.thumbnail_hd, "Preview image");
   sourceLink.href = data.source_url || "#";
   sourceLink.hidden = !data.source_url;

@@ -1,5 +1,5 @@
 import { execFile, execSync } from "node:child_process";
-import { randomUUID } from "node:crypto";
+import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from "node:crypto";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
@@ -62,6 +62,39 @@ if (!hasPythonYtDlp) {
     ytDlpArgs = ["-m", "yt_dlp"];
   }
 }
+
+const ALGORITHM = "aes-256-cbc";
+const SECRET_KEY = scryptSync(process.env.DOWNLOAD_SECRET || "social-downloader-secure-key-2026", "salt-123", 32);
+
+export const encryptData = (data) => {
+  try {
+    const iv = randomBytes(16);
+    const cipher = createCipheriv(ALGORITHM, SECRET_KEY, iv);
+    let encrypted = cipher.update(JSON.stringify(data), "utf8", "base64");
+    encrypted += cipher.final("base64");
+    const token = iv.toString("base64url") + "." + Buffer.from(encrypted, "base64").toString("base64url");
+    return token;
+  } catch (e) {
+    console.error("Encryption error:", e);
+    return null;
+  }
+};
+
+export const decryptData = (token) => {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 2) return null;
+    const iv = Buffer.from(parts[0], "base64url");
+    const encrypted = Buffer.from(parts[1], "base64url");
+    const decipher = createDecipheriv(ALGORITHM, SECRET_KEY, iv);
+    let decrypted = decipher.update(encrypted, undefined, "utf8");
+    decrypted += decipher.final("utf8");
+    return JSON.parse(decrypted);
+  } catch (e) {
+    console.error("Decryption error:", e);
+    return null;
+  }
+};
 
 const CACHE_TTL_MS = 30 * 60 * 1000;
 const MAX_OPTIONS_PER_ENTRY = 24;
@@ -480,41 +513,73 @@ const hasAudio = (format) => Boolean(format.acodec && format.acodec !== "none");
 const hasVideo = (format) => Boolean(format.vcodec && format.vcodec !== "none");
 
 const cacheDownload = ({ format, entry = {}, title, entryIndex = 0 }) => {
-  cleanupCache();
-  const id = randomUUID();
   const type = mediaTypeFor(format);
   const sourceUrl = entry.webpage_url || entry.original_url || entry.url;
   const shouldMergeAudio = type === "video" && hasVideo(format) && !hasAudio(format) && format.format_id && sourceUrl;
-  const mergeExt = String(format.ext || "").toLowerCase() === "webm" ? "webm" : "mp4";
-  const mergeAudioSelector =
-    mergeExt === "webm" ? "ba[ext=webm]/ba[acodec=opus]/ba" : "ba[ext=m4a]/ba[ext=mp4]/ba";
-  const ext = String(
-    shouldMergeAudio ? mergeExt : format.ext || (type === "audio" ? "mp3" : type === "image" ? "jpg" : "mp4")
-  ).replace(/^\./, "");
+  const mergeExt = "mp4"; // Always merge into MP4 container
+  const mergeAudioSelector = "ba[ext=m4a]/ba[ext=mp4]/ba";
+  
+  const isVideoWebm = type === "video" && String(format.ext || "").toLowerCase() === "webm";
+  const isDirectRestrictionPlatform = sourceUrl && (
+    sourceUrl.includes("facebook.com") ||
+    sourceUrl.includes("fb.watch") ||
+    sourceUrl.includes("fb.com") ||
+    sourceUrl.includes("instagram.com") ||
+    sourceUrl.includes("instagr.am") ||
+    sourceUrl.includes("tiktok.com")
+  );
+  // We need server processing (yt-dlp) if we must merge audio/video, remux webm video to mp4, if we extract audio to MP3, or if it is a platform that restricts direct downloads
+  const requiresYtDlp = shouldMergeAudio || isVideoWebm || (type === "audio" && sourceUrl) || isDirectRestrictionPlatform;
+  
+  const ext = type === "video" ? "mp4" : type === "audio" ? "mp3" : String(format.ext || "jpg").replace(/^\./, "");
   const filename = brandedFileName(`${title}${entryIndex > 0 ? `-${entryIndex + 1}` : ""}`, ext);
 
-  downloadCache.set(id, {
-    id,
-    url: shouldMergeAudio ? "" : format.url,
+  const payload = {
+    url: requiresYtDlp ? "" : format.url,
     sourceUrl,
     formatId: format.format_id,
     formatSelector: shouldMergeAudio
       ? mergeAudioSelector.split('/').map(a => `${format.format_id}+${a}`).join('/') + `/${format.format_id}+bestaudio/${format.format_id}`
-      : "",
+      : (type === "audio" ? "bestaudio/best" : ""),
     headers: getHeaders(format, entry),
     filename,
     ext,
     type,
-    requiresYtDlp: shouldMergeAudio,
-    expiresAt: Date.now() + CACHE_TTL_MS
-  });
+    requiresYtDlp
+  };
 
-  return id;
+  return encryptData(payload);
+};
+
+const cacheMp3Download = ({ sourceUrl, title }) => {
+  const filename = brandedFileName(title, "mp3");
+
+  const payload = {
+    url: "",
+    sourceUrl,
+    formatId: "bestaudio",
+    formatSelector: "bestaudio/best",
+    filename,
+    ext: "mp3",
+    type: "audio",
+    requiresYtDlp: true
+  };
+  const id = encryptData(payload);
+
+  return {
+    id,
+    label: "High Quality MP3 Audio",
+    resolution: "320kbps",
+    type: "audio",
+    badge: "Audio MP3",
+    extension: "mp3",
+    size: "",
+    download_url: `/api/download?id=${encodeURIComponent(id)}`,
+    preview_url: `/api/download?id=${encodeURIComponent(id)}&preview=1`
+  };
 };
 
 const cacheMergedDownload = ({ sourceUrl, title, quality = "high" }) => {
-  cleanupCache();
-  const id = randomUUID();
   const suffix = quality === "normal" ? "normal" : "high";
   const filename = brandedFileName(`${title}-${suffix}`, "mp4");
   const formatSelector =
@@ -522,17 +587,16 @@ const cacheMergedDownload = ({ sourceUrl, title, quality = "high" }) => {
       ? "bv*[height<=720][ext=mp4]+ba[ext=m4a]/bv*[height<=720]+ba/b[height<=720]/best[height<=720]/best"
       : "bv*[ext=mp4]+ba[ext=m4a]/bv*+ba/best";
 
-  downloadCache.set(id, {
-    id,
+  const payload = {
     url: "",
     sourceUrl,
     formatSelector,
     filename,
     ext: "mp4",
     type: "video",
-    requiresYtDlp: true,
-    expiresAt: Date.now() + CACHE_TTL_MS
-  });
+    requiresYtDlp: true
+  };
+  const id = encryptData(payload);
 
   return {
     id,
@@ -555,7 +619,7 @@ const normalizeFormat = (format, entry, title, entryIndex, optionIndex) => {
   const type = mediaTypeFor(format);
   const id = cacheDownload({ format, entry, title, entryIndex });
   const mergedAudio = Boolean(type === "video" && hasVideo(format) && !hasAudio(format) && format.format_id);
-  const mergedExtension = String(format.ext || "").toLowerCase() === "webm" ? "webm" : "mp4";
+  const isVideoWebm = type === "video" && String(format.ext || "").toLowerCase() === "webm";
   const resolution =
     format.resolution ||
     (format.width && format.height ? `${format.width}x${format.height}` : type === "audio" ? "Audio only" : "Original");
@@ -565,7 +629,7 @@ const normalizeFormat = (format, entry, title, entryIndex, optionIndex) => {
     label: optionLabel(format, entryIndex) || `Option ${optionIndex + 1}`,
     resolution,
     type,
-    has_audio: mergedAudio || hasAudio(format),
+    has_audio: mergedAudio || hasAudio(format) || isVideoWebm,
     has_video: hasVideo(format),
     badge: isWatermarked(format)
       ? "Watermarked"
@@ -575,9 +639,9 @@ const normalizeFormat = (format, entry, title, entryIndex, optionIndex) => {
           ? "Best no watermark"
           : "",
     is_watermarked: isWatermarked(format),
-    extension: mergedAudio ? mergedExtension : format.ext || "",
+    extension: type === "video" ? "mp4" : type === "audio" ? "mp3" : format.ext || "",
     format_id: format.format_id || "",
-    size: mergedAudio ? "" : formatBytes(format.filesize || format.filesize_approx),
+    size: mergedAudio || isVideoWebm ? "" : formatBytes(format.filesize || format.filesize_approx),
     download_url: `/api/download?id=${encodeURIComponent(id)}`,
     preview_url: `/api/download?id=${encodeURIComponent(id)}&preview=1`
   };
@@ -612,8 +676,8 @@ const collectFormats = (entry) => {
   if (entry.url) formats.push(entry);
   if (Array.isArray(entry.formats)) formats.push(...entry.formats);
 
-  const seen = new Set();
-  return formats
+  // 1. Sort candidates first by quality so the best format is selected first
+  const sorted = formats
     .filter((format) => format && isHttpUrl(format.url))
     .filter((format) => !String(format.protocol || "").includes("m3u8"))
     .filter((format) => {
@@ -621,27 +685,27 @@ const collectFormats = (entry) => {
       if (["mhtml", "json", "srv1", "srv2", "srv3", "ttml", "vtt"].includes(ext)) return false;
       return mediaTypeFor(format) !== "video" || hasVideo(format) || hasAudio(format);
     })
-    .filter((format) => {
-      const key = [
-        format.format_id,
-        format.ext,
-        format.resolution || `${format.width || ""}x${format.height || ""}`,
-        format.filesize || format.filesize_approx || "",
-        format.vcodec || "",
-        format.acodec || "",
-        format.format_note || ""
-      ].join("|").replace(/-\d+\|/, "|");
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    })
     .sort((a, b) => {
       const aWatermark = isWatermarked(a) ? 1 : 0;
       const bWatermark = isWatermarked(b) ? 1 : 0;
       if (aWatermark !== bWatermark) return aWatermark - bWatermark;
       return qualityScore(b) - qualityScore(a);
-    })
-    .slice(0, MAX_OPTIONS_PER_ENTRY);
+    });
+
+  // 2. Deduplicate based on type and resolution to avoid listing duplicate files
+  const seen = new Set();
+  const deduped = [];
+  for (const format of sorted) {
+    const type = mediaTypeFor(format);
+    const res = format.resolution || (format.width && format.height ? `${format.width}x${format.height}` : format.height || format.format_note || format.format_id);
+    const key = `${type}|${res}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      deduped.push(format);
+    }
+  }
+
+  return deduped.slice(0, MAX_OPTIONS_PER_ENTRY);
 };
 
 const buildPrimaryActions = (downloads, { sourceUrl, title }) => {
@@ -694,11 +758,14 @@ const buildPrimaryActions = (downloads, { sourceUrl, title }) => {
     pickPlayableVideo(videos.filter((item) => item !== highQuality), { mp4Only: true, maxHeight: 720 }) ||
     pickPlayableVideo(videos.filter((item) => item !== highQuality), { maxHeight: 720 }) ||
     highQuality;
+  const audios = downloads.filter((item) => item.type === "audio");
+  const audioMp3 = audios.find((item) => item.extension === "mp3") || audios[0] || null;
   const thumbnailHd = images.find((item) => /thumbnail|preview/i.test([item.label, item.badge].join(" "))) || images[0] || null;
 
   return {
     high_quality: highQuality,
     normal_quality: normalQuality,
+    audio_mp3: audioMp3,
     thumbnail_hd: thumbnailHd
   };
 };
@@ -828,8 +895,56 @@ export const fetchVideoDetails = async (url) => {
       expiresAt: Date.now() + INFO_CACHE_TTL_MS
     });
   }
+
   const entries = Array.isArray(data.entries) && data.entries.length ? data.entries.filter(Boolean) : [data];
-  const title = String(pick(data, ["title", "fulltitle", "playlist_title"]) || "Social media download");
+  let title = String(pick(data, ["title", "fulltitle", "playlist_title"]) || "Social media download");
+
+  // Clean up title and extract likes/shares if prepended
+  let parsedReactions = null;
+  let parsedShares = null;
+  let parsedViews = null;
+  
+  const twoStatsPattern = /^(?:[^\d]*\s*)?([\d.]+[KMB]?)\s*(reactions|likes|views)\s*(?:·|•|·|-|\||\s)+\s*([\d.]+[KMB]?)\s*(shares|comments|views|reactions|likes)?\s*(?:\||-)\s*(.*)/i;
+  const oneStatPattern = /^(?:[^\d]*\s*)?([\d.]+[KMB]?)\s*(reactions|likes|views|shares|comments)\s*(?:\||-)\s*(.*)/i;
+
+  let match = title.match(twoStatsPattern);
+  if (match) {
+    const val1 = match[1];
+    const label1 = match[2].toLowerCase();
+    const val2 = match[3];
+    const label2 = match[4] ? match[4].toLowerCase() : "";
+    title = match[5];
+
+    if (label1.includes("reaction") || label1.includes("like")) {
+      parsedReactions = val1;
+    } else if (label1.includes("view")) {
+      parsedViews = val1;
+    }
+
+    if (label2.includes("share") || label2.includes("comment")) {
+      parsedShares = val2;
+    } else if (label2.includes("reaction") || label2.includes("like")) {
+      parsedReactions = val2;
+    } else if (label2.includes("view")) {
+      parsedViews = val2;
+    }
+  } else {
+    match = title.match(oneStatPattern);
+    if (match) {
+      const val1 = match[1];
+      const label1 = match[2].toLowerCase();
+      title = match[3];
+
+      if (label1.includes("reaction") || label1.includes("like")) {
+        parsedReactions = val1;
+      } else if (label1.includes("view")) {
+        parsedViews = val1;
+      } else if (label1.includes("share") || label1.includes("comment")) {
+        parsedShares = val1;
+      }
+    }
+  }
+
   const thumbnail =
     String(pick(data, ["thumbnail"]) || pick(entries[0], ["thumbnail"]) || pick(entries[0]?.thumbnails?.at?.(-1), ["url"]) || "");
   const platform = detectPlatform(data, entries, url);
@@ -841,13 +956,16 @@ export const fetchVideoDetails = async (url) => {
       .map((format, optionIndex) => normalizeFormat(format, entry, entryTitle, entryIndex, optionIndex))
       .filter(Boolean);
   });
+  const sourceUrl = String(pick(data, ["webpage_url", "original_url"]) || pick(entries[0], ["webpage_url", "original_url", "url"]) || url);
+  const mp3Option = sourceUrl ? cacheMp3Download({ sourceUrl, title }) : null;
+  if (mp3Option) videos.push(mp3Option);
+
   const thumbnailOption = normalizeThumbnail(thumbnail, title);
   if (thumbnailOption) videos.push(thumbnailOption);
 
   if (!videos.length) {
     throw new Error("No downloadable media links were found for this URL.");
   }
-  const sourceUrl = String(pick(data, ["webpage_url", "original_url"]) || pick(entries[0], ["webpage_url", "original_url", "url"]) || url);
   const primaryActions = buildPrimaryActions(videos, { sourceUrl, title });
 
   return {
@@ -864,8 +982,9 @@ export const fetchVideoDetails = async (url) => {
       title,
       thumbnail,
       duration: formatDuration(pick(data, ["duration"]) || pick(entries[0], ["duration"])),
-      view_count: numberLabel(pick(data, ["view_count"]) || pick(entries[0], ["view_count"])),
-      like_count: numberLabel(pick(data, ["like_count"]) || pick(entries[0], ["like_count"])),
+      view_count: parsedViews || numberLabel(pick(data, ["view_count"]) || pick(entries[0], ["view_count"])),
+      like_count: parsedReactions || numberLabel(pick(data, ["like_count"]) || pick(entries[0], ["like_count"])),
+      share_count: parsedShares || numberLabel(pick(data, ["share_count"]) || pick(entries[0], ["share_count"])),
       upload_date: String(pick(data, ["upload_date"]) || pick(entries[0], ["upload_date"]) || "")
     },
     creator,
@@ -876,6 +995,6 @@ export const fetchVideoDetails = async (url) => {
 };
 
 export const getCachedDownload = (id) => {
-  cleanupCache();
-  return downloadCache.get(id) || null;
+  return decryptData(id);
 };
+

@@ -150,7 +150,38 @@
             <div id="result-badges" class="result-badges"></div>
             <p class="eyebrow">Live link preview</p>
             <h2 id="title"></h2>
+            <p id="description" class="preview-desc" style="display: none;"></p>
             <p id="count"></p>
+            <div id="media-stats-box" class="media-stats-box" style="display: none;">
+              <div class="media-stat-card">
+                <span class="material-symbols-outlined">visibility</span>
+                <div class="media-stat-text">
+                  <span id="stat-views">-</span>
+                  <small>Views</small>
+                </div>
+              </div>
+              <div class="media-stat-card">
+                <span class="material-symbols-outlined">favorite</span>
+                <div class="media-stat-text">
+                  <span id="stat-likes">-</span>
+                  <small>Likes</small>
+                </div>
+              </div>
+              <div class="media-stat-card">
+                <span class="material-symbols-outlined">share</span>
+                <div class="media-stat-text">
+                  <span id="stat-shares">-</span>
+                  <small>Shares</small>
+                </div>
+              </div>
+              <div class="media-stat-card">
+                <span class="material-symbols-outlined">schedule</span>
+                <div class="media-stat-text">
+                  <span id="stat-duration">-</span>
+                  <small>Duration</small>
+                </div>
+              </div>
+            </div>
             <a id="source-link" class="source-link" href="#" target="_blank" rel="noreferrer">
               <span class="material-symbols-outlined link-icon">open_in_new</span>
               <span>Open source</span>
@@ -168,6 +199,11 @@
             <span class="material-symbols-outlined action-icon">video_file</span>
             <span class="action-label">Normal Quality</span>
             <small id="normal-meta">Smaller video</small>
+          </a>
+          <a id="audio-download" class="primary-action action-audio" href="#">
+            <span class="material-symbols-outlined action-icon">audiotrack</span>
+            <span class="action-label">Audio MP3</span>
+            <small id="audio-meta">Download MP3</small>
           </a>
           <a id="thumbnail-download" class="primary-action action-thumb" href="#">
             <span class="material-symbols-outlined action-icon">image</span>

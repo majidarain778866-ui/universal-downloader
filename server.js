@@ -2,6 +2,7 @@ import { createServer } from "node:http";
 import { spawn } from "node:child_process";
 import { mkdtemp, readFile, readdir, rm, stat } from "node:fs/promises";
 import { createReadStream } from "node:fs";
+import { Readable } from "node:stream";
 import { extname, join, normalize } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
@@ -448,36 +449,54 @@ const handleDownloadProxy = async (req, res) => {
   });
 
   try {
-    for await (const chunk of upstream.body) {
-      if (!res.write(chunk)) {
-        await new Promise((resolve) => res.once("drain", resolve));
-      }
-    }
+    await new Promise((resolve, reject) => {
+      const stream = Readable.from(upstream.body);
+      stream.on("error", reject);
+      res.on("error", reject);
+      res.on("finish", resolve);
+      stream.pipe(res);
+    });
   } catch (error) {
+    console.error("Direct fetch streaming error:", error);
     if (!res.destroyed) res.destroy(error);
-    return;
   }
-  res.end();
 };
 
 const streamYtDlpDownload = async (cached, res, options = {}) => {
   const tempDir = await mkdtemp(join(tmpdir(), "social-downloader-"));
   const outputTemplate = join(tempDir, "download.%(ext)s");
+  const isAudioMp3 = cached.type === "audio" && cached.ext === "mp3";
   const args = [
     ...ytDlpArgs,
     "--no-warnings",
     "--ffmpeg-location",
-    ffmpegPath,
-    "--merge-output-format",
-    cached.ext || "mp4",
-    "-f",
-    cached.formatSelector || cached.formatId,
-    "--postprocessor-args",
-    "Merger:-strict -2",
-    "-o",
-    outputTemplate,
-    cached.sourceUrl
+    ffmpegPath
   ];
+
+  if (isAudioMp3) {
+    args.push(
+      "-f",
+      cached.formatSelector || "bestaudio/best",
+      "-x",
+      "--audio-format",
+      "mp3",
+      "--audio-quality",
+      "0"
+    );
+  } else {
+    args.push(
+      "--merge-output-format",
+      "mp4",
+      "--remux-video",
+      "mp4",
+      "-f",
+      cached.formatSelector || cached.formatId || "bestvideo+bestaudio/best",
+      "--postprocessor-args",
+      "Merger:-strict -2"
+    );
+  }
+
+  args.push("-o", outputTemplate, cached.sourceUrl);
   const child = spawn(pythonCmd, args, {
     env: {
       ...process.env,
