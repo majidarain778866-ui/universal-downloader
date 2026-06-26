@@ -470,7 +470,10 @@ const streamYtDlpDownload = async (cached, res, options = {}) => {
     ...ytDlpArgs,
     "--no-warnings",
     "--ffmpeg-location",
-    ffmpegPath
+    ffmpegPath,
+    "--no-check-certificate",
+    "--no-call-home",
+    "--extractor-args", "youtube:skip=hls,dash;player_client=android,web_creator"
   ];
 
   if (isAudioMp3) {
