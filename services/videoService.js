@@ -809,10 +809,11 @@ const runYtDlp = async (url) => {
     return JSON.parse(stdout);
   } catch (error) {
     const stderr = String(error.stderr || error.message || "");
+    console.error("runYtDlp execution failed. Stderr:", stderr, "Error Message:", error.message);
     if (stderr.includes("No module named yt_dlp")) {
       throw new Error("yt-dlp is not installed. Run: python -m pip install -U yt-dlp");
     }
-    if (/WinError 10013|forbidden by its access permissions|TransportError/i.test(stderr)) {
+    if (process.platform === "win32" && /WinError 10013|forbidden by its access permissions/i.test(stderr)) {
       throw new Error(
         "Network permission blocked yt-dlp. Allow Python/Node through Windows Firewall or run the app outside the restricted sandbox."
       );
