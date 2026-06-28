@@ -6,11 +6,12 @@ import { Readable } from "node:stream";
 import { extname, join, normalize } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
-import { fetchVideoDetails, getCachedDownload, pythonCmd, ytDlpArgs } from "./services/videoService.js";
-import { resolveLocalFfmpegPath } from "./services/localFfmpegPath.js";
-import { chmodSync } from "node:fs";
+import { fetchVideoDetails, getCachedDownload, pythonCmd, ytDlpArgs, getOrCreateCookiesPath } from "./services/videoService.js";
+import { resolveLocalFfmpegPath, getFfmpegEnv } from "./services/localFfmpegPath.js";
+import { chmodSync, writeFileSync, existsSync } from "node:fs";
 import { platforms } from "./public/platforms.js";
 import { blogs } from "./public/blogs.js";
+
 
 const ffmpegPath = resolveLocalFfmpegPath();
 try { chmodSync(ffmpegPath, 0o755); } catch {}
@@ -68,7 +69,10 @@ const mimeTypes = {
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
   ".svg": "image/svg+xml",
-  ".ico": "image/x-icon"
+  ".ico": "image/x-icon",
+  ".webp": "image/webp",
+  ".woff2": "font/woff2",
+  ".woff": "font/woff"
 };
 
 const corsHeaders = {
@@ -474,17 +478,30 @@ const streamYtDlpDownload = async (cached, res, options = {}) => {
   const tempDir = await mkdtemp(join(tmpdir(), "social-downloader-"));
   const outputTemplate = join(tempDir, "download.%(ext)s");
   const isAudioMp3 = cached.type === "audio" && cached.ext === "mp3";
+  const cookiesPath = getOrCreateCookiesPath();
+  const useCookies = cached.useCookies !== false;
+  const useImpersonate = cached.useImpersonate !== false;
   const args = [
     ...ytDlpArgs,
-    "--no-warnings",
-    "--ffmpeg-location",
-    ffmpegPath,
-    "--no-check-certificate",
-    "--no-call-home",
-    "--impersonate", "chrome",
-    "--extractor-args", "youtube:skip=hls,dash;player_client=android,web_creator"
+    "--no-warnings"
   ];
 
+  if (ffmpegPath && ffmpegPath !== "ffmpeg") {
+    args.push("--ffmpeg-location", ffmpegPath);
+  }
+
+  args.push("--no-check-certificate");
+
+  if (useImpersonate) {
+    args.push("--impersonate", "chrome");
+  }
+
+  // NOTE: We intentionally do NOT pass --extractor-args youtube:player_client=android,web_creator
+  // because that limits yt-dlp to only ~360p. Allow yt-dlp to use its full client negotiation.
+
+  if (useCookies && cookiesPath) {
+    args.push("--cookies", cookiesPath);
+  }
 
   if (isAudioMp3) {
     args.push(
@@ -512,7 +529,7 @@ const streamYtDlpDownload = async (cached, res, options = {}) => {
   args.push("-o", outputTemplate, cached.sourceUrl);
   const child = spawn(pythonCmd, args, {
     env: {
-      ...process.env,
+      ...getFfmpegEnv(),
       PYTHONPATH: [process.env.YTDLP_PYTHON_PATH, process.env.PYTHONPATH].filter(Boolean).join(process.platform === "win32" ? ";" : ":")
     },
     windowsHide: true,
@@ -595,6 +612,23 @@ const extensionFromContentType = (contentType, target) => {
 
 const serveStatic = async (req, res) => {
   const requestUrl = new URL(req.url, `http://${req.headers.host}`);
+  if (requestUrl.pathname === "/favicon.ico" || requestUrl.pathname === "/favicon.svg") {
+    const faviconPath = join(publicDir, "favicon.svg");
+    try {
+      const faviconStat = await stat(faviconPath);
+      if (faviconStat.isFile()) {
+        res.writeHead(200, {
+          "content-type": "image/svg+xml",
+          "cache-control": "public, max-age=86400"
+        });
+        createReadStream(faviconPath).pipe(res);
+        return;
+      }
+    } catch {
+      // favicon not found, fallthrough to 404
+    }
+  }
+
   if (requestUrl.pathname === "/robots.txt") {
     res.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
     res.end(renderRobots(req));

@@ -25,4 +25,10 @@ config.json
 test_merge.js
 test_output.f140.m4a
 test_download.f137.mp4.part
-
+# Standalone credentials and logs
+cookies.txt
+cookies/
+test_combined.js
+test_details_parsing.js
+test_download_audio.mp3
+test_download_video.mp4

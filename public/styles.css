@@ -47,7 +47,7 @@
 }
 
 /* Platform specific variations */
-[data-page-key="tiktok"] {
+[data-page-key^="tiktok"] {
   --theme-a: rgba(0, 242, 234, 0.18);
   --theme-b: rgba(255, 0, 80, 0.14);
   --theme-accent: #00f2fe;
@@ -56,7 +56,7 @@
   --theme-cta: linear-gradient(135deg, #fe0979, #00f2fe);
 }
 
-[data-page-key="instagram"] {
+[data-page-key^="instagram"] {
   --theme-a: rgba(131, 58, 180, 0.2);
   --theme-b: rgba(252, 176, 69, 0.14);
   --theme-accent: #e1306c;
@@ -65,7 +65,7 @@
   --theme-cta: linear-gradient(135deg, #e1306c, #f77737);
 }
 
-[data-page-key="youtube"] {
+[data-page-key^="youtube"] {
   --theme-a: rgba(255, 0, 0, 0.16);
   --theme-b: rgba(40, 40, 40, 0.12);
   --theme-accent: #ff0000;
@@ -74,7 +74,7 @@
   --theme-cta: linear-gradient(135deg, #ff0000, #b80000);
 }
 
-[data-page-key="facebook"] {
+[data-page-key^="facebook"] {
   --theme-a: rgba(24, 119, 242, 0.2);
   --theme-b: rgba(0, 198, 251, 0.12);
   --theme-accent: #1877f2;
@@ -83,7 +83,7 @@
   --theme-cta: linear-gradient(135deg, #1877f2, #0e56b3);
 }
 
-[data-page-key="twitter"] {
+[data-page-key^="twitter"] {
   --theme-a: rgba(255, 255, 255, 0.1);
   --theme-b: rgba(60, 60, 60, 0.08);
   --theme-accent: #ffffff;
@@ -92,7 +92,7 @@
   --theme-cta: linear-gradient(135deg, #222222, #555555);
 }
 
-[data-page-key="pinterest"] {
+[data-page-key^="pinterest"] {
   --theme-a: rgba(230, 0, 35, 0.18);
   --theme-b: rgba(255, 100, 100, 0.12);
   --theme-accent: #e60023;
@@ -190,10 +190,15 @@ button, input {
 .topbar,
 .hero,
 .result,
+.how-to-use,
 .supported,
 .seo-grid,
 .growth,
-.faq {
+.faq,
+.blog-hero,
+.blog-grid,
+.blog-grid-section,
+.blog-content-wrapper {
   width: min(1140px, 100%);
   margin-inline: auto;
   position: relative;
@@ -735,6 +740,35 @@ button[type="submit"] .btn-icon {
 .platform-vimeo { background: #1ab7ea; }
 .platform-reddit { background: #ff4500; }
 .platform-soundcloud { background: #ff5500; }
+.platform-linkedin { background: #0a66c2; }
+.platform-threads { background: #101010; }
+.platform-snapchat { background: #fffc00; color: #000 !important; }
+.platform-rumble { background: #85c724; }
+.platform-tumblr { background: #35465c; }
+.platform-streamable { background: #8b5cf6; }
+.platform-bitchute { background: #c00000; }
+.platform-bandcamp { background: #1ebbbb; }
+.platform-ifunny { background: #ffc107; color: #000 !important; }
+.platform-douyin { background: #161823; }
+.platform-bluesky { background: #0085ff; }
+.platform-kwai { background: #ff6600; }
+.platform-telegram { background: #24a1de; }
+.platform-canva { background: #00c4cc; }
+.platform-likee { background: #ff007f; }
+.platform-terabox { background: #0066ff; }
+.platform-mixcloud { background: #50c878; }
+.platform-lemon8 { background: #ffea00; color: #000 !important; }
+.platform-vk { background: #0077ff; }
+.platform-dailymotion { background: #0066dc; }
+.platform-mx-takatak { background: #ff4081; }
+.platform-whatsapp { background: #25d366; }
+.platform-rednote { background: #ff2442; }
+.platform-metaai { background: #0084ff; }
+.platform-kick { background: #53fc18; color: #000 !important; }
+.platform-9gag { background: #000000; }
+.platform-twitch { background: #9146ff; }
+.platform-loom { background: #625df5; }
+.platform-sharechat { background: #eb5757; }
 .platform-generic { background: #8b5cf6; }
 
 .preview-details {
@@ -1498,8 +1532,8 @@ button[type="submit"] .btn-icon {
   bottom: 20px;
   width: min(650px, calc(100% - 32px));
   transform: translateX(-50%);
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  display: flex;
+  justify-content: center;
   gap: 8px;
   padding: 10px;
   border-radius: 16px;
@@ -1511,6 +1545,8 @@ button[type="submit"] .btn-icon {
 }
 
 .bottom-app-nav a {
+  flex: 1;
+  max-width: 120px;
   display: flex;
   flex-direction: column;
   align-items: center;

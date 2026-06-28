@@ -14,7 +14,8 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@ffmpeg-installer/ffmpeg": "^1.1.0"
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@ffprobe-installer/ffprobe": "^2.1.2"
   },
   "devDependencies": {
     "netlify-cli": "^26.1.0"

@@ -20,6 +20,12 @@
   [headers.values]
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "SAMEORIGIN"
+
+[[headers]]
+  for = "/favicon.svg"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
 
 [[redirects]]
   from = "/api/video-info"
@@ -31,9 +37,20 @@
   to = "/.netlify/functions/api"
   status = 200
 
+# ── Platform Pages ─────────────────────────────────────────────
+[[redirects]]
+  from = "/youtube-shorts-downloader"
+  to = "/youtube-shorts-downloader/"
+  status = 200
+
 [[redirects]]
   from = "/tiktok-video-downloader"
   to = "/tiktok-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/tiktok-audio-downloader"
+  to = "/tiktok-audio-downloader/"
   status = 200
 
 [[redirects]]
@@ -42,13 +59,63 @@
   status = 200
 
 [[redirects]]
-  from = "/youtube-shorts-downloader"
-  to = "/youtube-shorts-downloader/"
+  from = "/instagram-video-downloader"
+  to = "/instagram-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/instagram-story-downloader"
+  to = "/instagram-story-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/instagram-photo-downloader"
+  to = "/instagram-photo-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/instagram-audio-downloader"
+  to = "/instagram-audio-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/instagram-highlight-downloader"
+  to = "/instagram-highlight-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/instagram-dp-viewer-downloader"
+  to = "/instagram-dp-viewer-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/instagram-caption-saver"
+  to = "/instagram-caption-saver/"
   status = 200
 
 [[redirects]]
   from = "/facebook-video-downloader"
   to = "/facebook-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/facebook-reel-downloader"
+  to = "/facebook-reel-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/facebook-private-video-downloader"
+  to = "/facebook-private-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/facebook-live-video-downloader"
+  to = "/facebook-live-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/facebook-story-downloader"
+  to = "/facebook-story-downloader/"
   status = 200
 
 [[redirects]]
@@ -59,4 +126,184 @@
 [[redirects]]
   from = "/pinterest-video-downloader"
   to = "/pinterest-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/pinterest-image-downloader"
+  to = "/pinterest-image-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/linkedin-video-downloader"
+  to = "/linkedin-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/threads-video-downloader"
+  to = "/threads-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/vimeo-video-downloader"
+  to = "/vimeo-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/snapchat-story-downloader-viewer"
+  to = "/snapchat-story-downloader-viewer/"
+  status = 200
+
+[[redirects]]
+  from = "/snapchat-downloader"
+  to = "/snapchat-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/rumble-video-downloader"
+  to = "/rumble-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/tumblr-video-downloader"
+  to = "/tumblr-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/streamable-video-downloader"
+  to = "/streamable-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/bitchute-video-downloader"
+  to = "/bitchute-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/bandcamp-music-downloader"
+  to = "/bandcamp-music-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/soundcloud-music-downloader"
+  to = "/soundcloud-music-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/ifunny-video-downloader"
+  to = "/ifunny-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/douyin-video-downloader"
+  to = "/douyin-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/bluesky-video-downloader"
+  to = "/bluesky-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/kwai-video-downloader"
+  to = "/kwai-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/telegram-video-downloader"
+  to = "/telegram-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/canva-downloader"
+  to = "/canva-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/reddit-video-downloader"
+  to = "/reddit-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/likee-video-downloader"
+  to = "/likee-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/terabox-downloader"
+  to = "/terabox-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/mixcloud-downloader"
+  to = "/mixcloud-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/lemon8-video-downloader"
+  to = "/lemon8-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/vk-video-downloader"
+  to = "/vk-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/dailymotion-video-downloader"
+  to = "/dailymotion-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/mx-takatak-video-downloader"
+  to = "/mx-takatak-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/whatsapp-dp-downloader"
+  to = "/whatsapp-dp-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/rednote-video-downloader"
+  to = "/rednote-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/metaai-downloader"
+  to = "/metaai-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/kick-video-downloader"
+  to = "/kick-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/9gag-video-downloader"
+  to = "/9gag-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/twitch-video-downloader"
+  to = "/twitch-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/loom-video-downloader"
+  to = "/loom-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/sharechat-video-downloader"
+  to = "/sharechat-video-downloader/"
+  status = 200
+
+[[redirects]]
+  from = "/blog"
+  to = "/blog/"
+  status = 200
+
+[[redirects]]
+  from = "/blog/*"
+  to = "/blog/:splat/"
   status = 200

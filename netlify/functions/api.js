@@ -5,7 +5,7 @@ import { Readable } from "node:stream";
 import { extname, join } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
-import { fetchVideoDetails, getCachedDownload, pythonCmd, ytDlpArgs } from "../../services/videoService.js";
+import { fetchVideoDetails, getCachedDownload, pythonCmd, ytDlpArgs, getOrCreateCookiesPath } from "../../services/videoService.js";
 import { resolveBundledFfmpegPath } from "../../services/bundledFfmpegPath.js";
 import { chmodSync } from "node:fs";
 
@@ -142,13 +142,30 @@ const streamYtDlpDownload = async (cached, inline = false) => {
   const tempDir = await mkdtemp(join(tmpdir(), "social-downloader-"));
   const outputTemplate = join(tempDir, "download.%(ext)s");
   const isAudioMp3 = cached.type === "audio" && cached.ext === "mp3";
+  const cookiesPath = getOrCreateCookiesPath();
+  const useCookies = cached.useCookies !== false;
+  const useImpersonate = cached.useImpersonate !== false;
   const args = [
     ...ytDlpArgs,
-    "--no-warnings",
-    "--ffmpeg-location",
-    ffmpegPath,
-    "--impersonate", "chrome"
+    "--no-warnings"
   ];
+
+  if (ffmpegPath && ffmpegPath !== "ffmpeg") {
+    args.push("--ffmpeg-location", ffmpegPath);
+  }
+
+  args.push("--no-check-certificate");
+
+  if (useImpersonate) {
+    args.push("--impersonate", "chrome");
+  }
+
+  // NOTE: We intentionally do NOT pass --extractor-args youtube:player_client=android,web_creator
+  // because that limits yt-dlp to only ~360p. Allow yt-dlp to use its full client negotiation.
+
+  if (useCookies && cookiesPath) {
+    args.push("--cookies", cookiesPath);
+  }
 
   if (isAudioMp3) {
     args.push(

@@ -5,8 +5,9 @@ import { promisify } from "node:util";
 const execFileAsync = promisify(execFile);
 
 import { join } from "node:path";
-import { existsSync } from "node:fs";
+import { existsSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { tmpdir } from "node:os";
 
 const currentDir = fileURLToPath(new URL(".", import.meta.url));
 const bundledPythonPath = [
@@ -581,13 +582,22 @@ const cacheDownload = ({ format, entry = {}, title, entryIndex = 0 }) => {
     sourceUrl.includes("fb.com") ||
     sourceUrl.includes("instagram.com") ||
     sourceUrl.includes("instagr.am") ||
-    sourceUrl.includes("tiktok.com")
+    sourceUrl.includes("tiktok.com") ||
+    sourceUrl.includes("youtube.com") ||
+    sourceUrl.includes("youtu.be") ||
+    sourceUrl.includes("twitter.com") ||
+    sourceUrl.includes("x.com") ||
+    sourceUrl.includes("pinterest.com") ||
+    sourceUrl.includes("pin.it") ||
+    sourceUrl.includes("reddit.com") ||
+    sourceUrl.includes("v.redd.it")
   );
   // We need server processing (yt-dlp) if we must merge audio/video, remux webm video to mp4, if we extract audio to MP3, or if it is a platform that restricts direct downloads
   const requiresYtDlp = shouldMergeAudio || isVideoWebm || (type === "audio" && sourceUrl) || isDirectRestrictionPlatform;
   
   const ext = type === "video" ? "mp4" : type === "audio" ? "mp3" : String(format.ext || "jpg").replace(/^\./, "");
   const filename = brandedFileName(`${title}${entryIndex > 0 ? `-${entryIndex + 1}` : ""}`, ext);
+  const strategy = entry._successful_strategy || { useCookies: true, useImpersonate: true };
 
   const payload = {
     url: requiresYtDlp ? "" : format.url,
@@ -600,13 +610,15 @@ const cacheDownload = ({ format, entry = {}, title, entryIndex = 0 }) => {
     filename,
     ext,
     type,
-    requiresYtDlp
+    requiresYtDlp,
+    useCookies: strategy.useCookies,
+    useImpersonate: strategy.useImpersonate
   };
 
   return encryptData(payload);
 };
 
-const cacheMp3Download = ({ sourceUrl, title }) => {
+const cacheMp3Download = ({ sourceUrl, title, strategy }) => {
   const filename = brandedFileName(title, "mp3");
 
   const payload = {
@@ -617,7 +629,9 @@ const cacheMp3Download = ({ sourceUrl, title }) => {
     filename,
     ext: "mp3",
     type: "audio",
-    requiresYtDlp: true
+    requiresYtDlp: true,
+    useCookies: strategy?.useCookies !== false,
+    useImpersonate: strategy?.useImpersonate !== false
   };
   const id = encryptData(payload);
 
@@ -634,7 +648,7 @@ const cacheMp3Download = ({ sourceUrl, title }) => {
   };
 };
 
-const cacheMergedDownload = ({ sourceUrl, title, quality = "high" }) => {
+const cacheMergedDownload = ({ sourceUrl, title, quality = "high", strategy }) => {
   const suffix = quality === "normal" ? "normal" : "high";
   const filename = brandedFileName(`${title}-${suffix}`, "mp4");
   const formatSelector =
@@ -649,7 +663,9 @@ const cacheMergedDownload = ({ sourceUrl, title, quality = "high" }) => {
     filename,
     ext: "mp4",
     type: "video",
-    requiresYtDlp: true
+    requiresYtDlp: true,
+    useCookies: strategy?.useCookies !== false,
+    useImpersonate: strategy?.useImpersonate !== false
   };
   const id = encryptData(payload);
 
@@ -683,7 +699,15 @@ const normalizeFormat = (format, entry, title, entryIndex, optionIndex) => {
     sourceUrl.includes("fb.com") ||
     sourceUrl.includes("instagram.com") ||
     sourceUrl.includes("instagr.am") ||
-    sourceUrl.includes("tiktok.com")
+    sourceUrl.includes("tiktok.com") ||
+    sourceUrl.includes("youtube.com") ||
+    sourceUrl.includes("youtu.be") ||
+    sourceUrl.includes("twitter.com") ||
+    sourceUrl.includes("x.com") ||
+    sourceUrl.includes("pinterest.com") ||
+    sourceUrl.includes("pin.it") ||
+    sourceUrl.includes("reddit.com") ||
+    sourceUrl.includes("v.redd.it")
   );
   const requiresYtDlp = mergedAudio || isVideoWebm || (type === "audio" && sourceUrl) || isDirectRestrictionPlatform;
 
@@ -775,7 +799,7 @@ const collectFormats = (entry) => {
   return deduped.slice(0, MAX_OPTIONS_PER_ENTRY);
 };
 
-const buildPrimaryActions = (downloads, { sourceUrl, title }) => {
+const buildPrimaryActions = (downloads, { sourceUrl, title, strategy }) => {
   const isNetlifyRuntime = Boolean(process.env.NETLIFY);
   const videos = downloads.filter((item) => item.type === "video");
   const completeVideos = videos.filter((item) => item.has_audio !== false);
@@ -800,8 +824,8 @@ const buildPrimaryActions = (downloads, { sourceUrl, title }) => {
       return Number(b.size || 0) - Number(a.size || 0);
     })[0] || null;
   };
-  const mergedHigh = sourceUrl ? cacheMergedDownload({ sourceUrl, title, quality: "high" }) : null;
-  const mergedNormal = sourceUrl ? cacheMergedDownload({ sourceUrl, title, quality: "normal" }) : null;
+  const mergedHigh = sourceUrl ? cacheMergedDownload({ sourceUrl, title, quality: "high", strategy }) : null;
+  const mergedNormal = sourceUrl ? cacheMergedDownload({ sourceUrl, title, quality: "normal", strategy }) : null;
   const directHigh =
     pickPlayableVideo(completeVideos, { mp4Only: true, maxHeight: isNetlifyRuntime ? 1080 : Number.POSITIVE_INFINITY }) ||
     pickPlayableVideo(completeVideos, { mp4Only: true }) ||
@@ -844,64 +868,122 @@ const cleanInfoCache = () => {
   }
 };
 
-const runYtDlp = async (url) => {
-  try {
-    const { stdout } = await execFileAsync(
-      pythonCmd,
-      [
-        ...ytDlpArgs,
-        "--dump-single-json",
-        "--skip-download",
-        "--no-warnings",
-        "--no-playlist",
-        "--no-check-formats",
-        "--no-check-certificate",
-        "--no-call-home",
-        "--impersonate", "chrome",
-        "--extractor-args", "youtube:skip=hls,dash;player_client=android,web_creator",
-        url
-      ],
+let cachedCookiesPath = null;
 
-
-      {
-        encoding: "utf8",
-        env: {
-          ...process.env,
-          PYTHONPATH: [process.env.YTDLP_PYTHON_PATH, process.env.PYTHONPATH].filter(Boolean).join(process.platform === "win32" ? ";" : ":")
-        },
-        maxBuffer: 80 * 1024 * 1024,
-        timeout: 120000,
-        windowsHide: true
-      }
-    );
-    return JSON.parse(stdout);
-  } catch (error) {
-    const stderr = String(error.stderr || error.message || "");
-    console.error("runYtDlp execution failed. Stderr:", stderr, "Error Message:", error.message);
-    if (stderr.includes("No module named yt_dlp")) {
-      throw new Error("yt-dlp is not installed. Run: python -m pip install -U yt-dlp");
-    }
-    if (process.platform === "win32" && /WinError 10013|forbidden by its access permissions/i.test(stderr)) {
-      throw new Error(
-        "Network permission blocked yt-dlp. Allow Python/Node through Windows Firewall or run the app outside the restricted sandbox."
-      );
-    }
-    if (/private|login|cookies|not available|unsupported|unable to extract|unable to download webpage|http error 404|Cannot parse data/i.test(stderr)) {
-      throw new Error("This video is private, unsupported, unavailable, or needs cookies/login access.");
-    }
-    const cleanError = stderr.split("\n")
-      .map((line) => line.trim())
-      .filter((line) => line && 
-        !line.toLowerCase().includes("deprecated") && 
-        !line.toLowerCase().includes("please remove") && 
-        !line.toLowerCase().includes("github.com/yt-dlp/yt-dlp/issues/") && 
-        !line.startsWith("WARNING:")
-      )
-      .join(" | ") || "Could not extract media from this URL.";
-    throw new Error(cleanError);
+export const getOrCreateCookiesPath = () => {
+  if (cachedCookiesPath && existsSync(cachedCookiesPath)) {
+    return cachedCookiesPath;
   }
 
+  if (process.env.COOKIES_CONTENT) {
+    try {
+      const tempPath = join(tmpdir(), "cookies.txt");
+      writeFileSync(tempPath, process.env.COOKIES_CONTENT, "utf8");
+      console.log(`[videoService] Successfully created cookies.txt in temp dir: ${tempPath}`);
+      cachedCookiesPath = tempPath;
+      return tempPath;
+    } catch (err) {
+      console.error("[videoService] Failed to write cookies.txt to temp dir:", err);
+    }
+  }
 
+  const localPath = join(process.cwd(), "cookies.txt");
+  if (existsSync(localPath)) {
+    return localPath;
+  }
+
+  return null;
+};
+
+const buildYtDlpArgs = (url, cookiesPath, { useImpersonate = true, useCookies = true } = {}) => {
+  const args = [
+    ...ytDlpArgs,
+    "--dump-single-json",
+    "--skip-download",
+    "--no-warnings",
+    "--no-playlist",
+    "--no-check-certificate"
+  ];
+
+  if (useImpersonate) {
+    args.push("--impersonate", "chrome");
+  }
+
+  // NOTE: We intentionally do NOT pass --extractor-args youtube:player_client=android,web_creator
+  // because that restricts yt-dlp to only ~360p. Allow yt-dlp to use its full client negotiation
+  // so it can return all available resolutions (144p through 4K).
+
+  if (useCookies && cookiesPath) {
+    args.push("--cookies", cookiesPath);
+  }
+
+  args.push(url);
+  return args;
+};
+
+const runYtDlp = async (url) => {
+  const cookiesPath = getOrCreateCookiesPath();
+  const commonEnv = {
+    ...process.env,
+    PYTHONPATH: [process.env.YTDLP_PYTHON_PATH, process.env.PYTHONPATH].filter(Boolean).join(process.platform === "win32" ? ";" : ":")
+  };
+
+  const execOptions = {
+    encoding: "utf8",
+    env: commonEnv,
+    maxBuffer: 80 * 1024 * 1024,
+    timeout: 120000,
+    windowsHide: true
+  };
+
+  const strategies = [];
+  if (cookiesPath) {
+    strategies.push({ useCookies: true, useImpersonate: true });
+    strategies.push({ useCookies: true, useImpersonate: false });
+  }
+  strategies.push({ useCookies: false, useImpersonate: true });
+  strategies.push({ useCookies: false, useImpersonate: false });
+
+  let lastError;
+
+  for (const strategy of strategies) {
+    try {
+      const args = buildYtDlpArgs(url, cookiesPath, strategy);
+      const { stdout } = await execFileAsync(pythonCmd, args, execOptions);
+      const result = JSON.parse(stdout);
+      result._successful_strategy = strategy;
+      return result;
+    } catch (error) {
+      const stderr = String(error.stderr || error.message || "");
+      lastError = error;
+
+      if (stderr.includes("No module named yt_dlp")) {
+        throw new Error("yt-dlp is not installed. Run: python -m pip install -U yt-dlp");
+      }
+      if (process.platform === "win32" && /WinError 10013|forbidden by its access permissions/i.test(stderr)) {
+        throw new Error(
+          "Network permission blocked yt-dlp. Allow Python/Node through Windows Firewall or run the app outside the restricted sandbox."
+        );
+      }
+    }
+  }
+
+  // Both attempts failed
+  const stderr = String(lastError?.stderr || lastError?.message || "");
+  console.error("runYtDlp all attempts failed. Stderr:", stderr);
+  if (/private|login|cookies|not available|unsupported|unable to extract|unable to download webpage|http error 404|Cannot parse data/i.test(stderr)) {
+    throw new Error("This video is private, unsupported, unavailable, or needs cookies/login access.");
+  }
+  const cleanError = stderr.split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line &&
+      !line.toLowerCase().includes("deprecated") &&
+      !line.toLowerCase().includes("please remove") &&
+      !line.toLowerCase().includes("github.com/yt-dlp/yt-dlp/issues/") &&
+      !line.startsWith("WARNING:")
+    )
+    .join(" | ") || "Could not extract media from this URL.";
+  throw new Error(cleanError);
 };
 
 export const normalizeUrl = (urlString) => {
@@ -976,7 +1058,12 @@ export const fetchVideoDetails = async (url) => {
     });
   }
 
-  const entries = Array.isArray(data.entries) && data.entries.length ? data.entries.filter(Boolean) : [data];
+  const entries = Array.isArray(data.entries) && data.entries.length
+    ? data.entries.filter(Boolean).map((e) => {
+        e._successful_strategy = data._successful_strategy;
+        return e;
+      })
+    : [data];
   let title = String(pick(data, ["title", "fulltitle", "playlist_title"]) || "Social media download");
 
   // Clean up title and extract likes/shares if prepended
@@ -1037,7 +1124,7 @@ export const fetchVideoDetails = async (url) => {
       .filter(Boolean);
   });
   const sourceUrl = String(pick(data, ["webpage_url", "original_url"]) || pick(entries[0], ["webpage_url", "original_url", "url"]) || url);
-  const mp3Option = sourceUrl ? cacheMp3Download({ sourceUrl, title }) : null;
+  const mp3Option = sourceUrl ? cacheMp3Download({ sourceUrl, title, strategy: data._successful_strategy }) : null;
   if (mp3Option) videos.push(mp3Option);
 
   const thumbnailOption = normalizeThumbnail(thumbnail, title);
@@ -1046,7 +1133,7 @@ export const fetchVideoDetails = async (url) => {
   if (!videos.length) {
     throw new Error("No downloadable media links were found for this URL.");
   }
-  const primaryActions = buildPrimaryActions(videos, { sourceUrl, title });
+  const primaryActions = buildPrimaryActions(videos, { sourceUrl, title, strategy: data._successful_strategy });
 
   return {
     title,

@@ -425,7 +425,7 @@ export const platforms = {
     heroTitle: "Save Facebook Reels in Full HD",
     heroSubtitle: "Save public Reels from Facebook instantly. No installation, fast speeds, and crystal clear MP4 outputs.",
     placeholder: "Paste a Facebook Reel URL...",
-    icon: "video_collection",
+    icon: "video_library",
     badge: "FBR",
     theme: {
       "--theme-a": "rgba(24, 119, 242, 0.18)",
