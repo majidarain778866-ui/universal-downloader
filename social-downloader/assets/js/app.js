@@ -117,7 +117,7 @@ const safeFileName = (name) =>
     .replace(/[<>:"/\\|?*\x00-\x1F]/g, "")
     .replace(/\s+/g, " ")
     .trim()
-    .slice(0, 80) || "social-download";
+    .slice(0, 45) || "social-download";
 
 const brandedDownloadName = (name, extension = "") => {
   const cleanExtension = String(extension || "").replace(/^\./, "").toLowerCase();

@@ -518,7 +518,7 @@ const safeFileName = (name) =>
     .replace(/[<>:"/\\|?*\x00-\x1F]/g, "")
     .replace(/\s+/g, " ")
     .trim()
-    .slice(0, 120) || "social-download";
+    .slice(0, 45) || "social-download";
 
 const brandedFileName = (name, extension) => {
   const cleanExtension = String(extension || "mp4").replace(/^\./, "") || "mp4";
@@ -546,6 +546,8 @@ const getHeaders = (format, entry) => {
     ...(entry.http_headers || {}),
     ...(format.http_headers || {})
   };
+  // remove conflicting headers
+  delete headers["Host"];
   const cookies = cookieHeaderFromYtDlp(format.cookies || entry.cookies);
   if (cookies) headers.Cookie = cookies;
   if (!headers["User-Agent"]) {

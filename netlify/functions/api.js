@@ -265,7 +265,8 @@ const handleDownload = async (req) => {
   });
 
   if (!upstream.ok || !upstream.body) {
-    return json({ error: `Download server returned ${upstream.status || "an empty response"}.` }, upstream.status || 502);
+    // If proxy fails due to IP block or 403, fallback to direct redirect
+    return Response.redirect(cached.url, 302);
   }
 
   const contentType = upstream.headers.get("content-type") || "application/octet-stream";
