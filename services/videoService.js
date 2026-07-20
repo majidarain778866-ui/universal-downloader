@@ -5,9 +5,29 @@ import { promisify } from "node:util";
 const execFileAsync = promisify(execFile);
 
 import { join } from "node:path";
-import { existsSync, writeFileSync } from "node:fs";
+import { existsSync, writeFileSync, copyFileSync, chmodSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
+
+export const prepareServerlessBinary = (srcPath, name) => {
+  if (!srcPath || !existsSync(srcPath)) return srcPath;
+  
+  const isServerless = Boolean(process.env.NETLIFY || process.env.LAMBDA_TASK_ROOT);
+  if (!isServerless) return srcPath;
+
+  const destPath = join(tmpdir(), name);
+  try {
+    if (!existsSync(destPath)) {
+      copyFileSync(srcPath, destPath);
+    }
+    chmodSync(destPath, 0o755);
+    console.log(`[Serverless] Prepared binary ${name} in /tmp: ${destPath}`);
+    return destPath;
+  } catch (err) {
+    console.error(`[Serverless] Failed to prepare binary ${name}:`, err);
+    return srcPath;
+  }
+};
 
 const currentDir = fileURLToPath(new URL(".", import.meta.url));
 const bundledPythonPath = [
@@ -72,7 +92,7 @@ if (!hasPythonYtDlp) {
 
   const binPath = binPaths.find(p => existsSync(p));
   if (binPath) {
-    pythonCmd = binPath;
+    pythonCmd = prepareServerlessBinary(binPath, binName);
     ytDlpArgs = [];
     hasPythonYtDlp = true;
   } else {
@@ -576,24 +596,9 @@ const cacheDownload = ({ format, entry = {}, title, entryIndex = 0 }) => {
   const mergeAudioSelector = "ba[ext=m4a]/ba[ext=mp4]/ba";
   
   const isVideoWebm = type === "video" && String(format.ext || "").toLowerCase() === "webm";
-  const isDirectRestrictionPlatform = sourceUrl && (
-    sourceUrl.includes("facebook.com") ||
-    sourceUrl.includes("fb.watch") ||
-    sourceUrl.includes("fb.com") ||
-    sourceUrl.includes("instagram.com") ||
-    sourceUrl.includes("instagr.am") ||
-    sourceUrl.includes("tiktok.com") ||
-    sourceUrl.includes("youtube.com") ||
-    sourceUrl.includes("youtu.be") ||
-    sourceUrl.includes("twitter.com") ||
-    sourceUrl.includes("x.com") ||
-    sourceUrl.includes("pinterest.com") ||
-    sourceUrl.includes("pin.it") ||
-    sourceUrl.includes("reddit.com") ||
-    sourceUrl.includes("v.redd.it")
-  );
-  // We need server processing (yt-dlp) if we must merge audio/video, remux webm video to mp4, if we extract audio to MP3, or if it is a platform that restricts direct downloads
-  const requiresYtDlp = shouldMergeAudio || isVideoWebm || (type === "audio" && sourceUrl) || isDirectRestrictionPlatform;
+  const isDirectProtocol = !format.protocol || /^(https?)$/i.test(format.protocol);
+  // We need server processing (yt-dlp) if we must merge audio/video, remux webm video to mp4, if we extract audio to MP3, or if it is not a direct protocol (e.g. m3u8, dash)
+  const requiresYtDlp = shouldMergeAudio || isVideoWebm || (type === "audio" && sourceUrl) || !isDirectProtocol;
   
   const ext = type === "video" ? "mp4" : type === "audio" ? "mp3" : String(format.ext || "jpg").replace(/^\./, "");
   const filename = brandedFileName(`${title}${entryIndex > 0 ? `-${entryIndex + 1}` : ""}`, ext);
@@ -693,23 +698,8 @@ const normalizeFormat = (format, entry, title, entryIndex, optionIndex) => {
   const isVideoWebm = type === "video" && String(format.ext || "").toLowerCase() === "webm";
   
   const sourceUrl = entry.webpage_url || entry.original_url || entry.url;
-  const isDirectRestrictionPlatform = sourceUrl && (
-    sourceUrl.includes("facebook.com") ||
-    sourceUrl.includes("fb.watch") ||
-    sourceUrl.includes("fb.com") ||
-    sourceUrl.includes("instagram.com") ||
-    sourceUrl.includes("instagr.am") ||
-    sourceUrl.includes("tiktok.com") ||
-    sourceUrl.includes("youtube.com") ||
-    sourceUrl.includes("youtu.be") ||
-    sourceUrl.includes("twitter.com") ||
-    sourceUrl.includes("x.com") ||
-    sourceUrl.includes("pinterest.com") ||
-    sourceUrl.includes("pin.it") ||
-    sourceUrl.includes("reddit.com") ||
-    sourceUrl.includes("v.redd.it")
-  );
-  const requiresYtDlp = mergedAudio || isVideoWebm || (type === "audio" && sourceUrl) || isDirectRestrictionPlatform;
+  const isDirectProtocol = !format.protocol || /^(https?)$/i.test(format.protocol);
+  const requiresYtDlp = mergedAudio || isVideoWebm || (type === "audio" && sourceUrl) || !isDirectProtocol;
 
   const resolution =
     format.resolution ||
