@@ -3,7 +3,7 @@
  * Plugin Name: Premium Social Media Downloader
  * Plugin URI: https://getintodevice.netlify.app
  * Description: Embed a fast, beautiful, glassmorphic social media video and audio downloader (supporting TikTok, Instagram, YouTube, Facebook, X, Pinterest, and 40+ more platforms) using the shortcode [social_downloader].
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Majid Arain
  * Author URI: https://getintodevice.netlify.app
  * License: GPL2
@@ -11,6 +11,10 @@
 
 if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
+}
+
+if (!defined('PSD_VERSION')) {
+    define('PSD_VERSION', '1.1.0');
 }
 
 if (!class_exists('PremiumSocialDownloader')) {
@@ -31,10 +35,10 @@ if (!class_exists('PremiumSocialDownloader')) {
         wp_enqueue_style('psd-material-icons', 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200', array(), null);
 
         // Enqueue custom CSS
-        wp_enqueue_style('psd-styles', plugin_dir_url(__FILE__) . 'assets/css/styles.css', array(), '1.0.0');
+        wp_enqueue_style('psd-styles', plugin_dir_url(__FILE__) . 'assets/css/styles.css', array(), PSD_VERSION);
 
         // Enqueue custom JS
-        wp_enqueue_script('psd-app', plugin_dir_url(__FILE__) . 'assets/js/app.js', array(), '1.0.0', true);
+        wp_enqueue_script('psd-app', plugin_dir_url(__FILE__) . 'assets/js/app.js', array(), PSD_VERSION, true);
 
         // Localize script to pass options dynamically from WordPress database
         wp_localize_script('psd-app', 'psdSettings', array(
@@ -60,7 +64,7 @@ if (!class_exists('PremiumSocialDownloader')) {
         wp_enqueue_script('wp-color-picker');
 
         // Enqueue custom Admin Stylesheet
-        wp_enqueue_style('psd-admin-styles', plugin_dir_url(__FILE__) . 'assets/css/admin-styles.css', array(), '1.0.0');
+        wp_enqueue_style('psd-admin-styles', plugin_dir_url(__FILE__) . 'assets/css/admin-styles.css', array(), PSD_VERSION);
     }
 
     public function add_admin_menu() {

@@ -1117,11 +1117,16 @@ export const fetchVideoDetails = async (url) => {
   const platform = detectPlatform(data, entries, url);
   const creator = buildCreator(data, entries, platform.key);
 
-  const videos = entries.flatMap((entry, entryIndex) => {
+  let videos = entries.flatMap((entry, entryIndex) => {
     const entryTitle = String(pick(entry, ["title", "fulltitle"]) || title);
     return collectFormats(entry)
       .map((format, optionIndex) => normalizeFormat(format, entry, entryTitle, entryIndex, optionIndex))
       .filter(Boolean);
+  });
+  
+  videos = videos.filter(item => {
+    const ext = String(item.extension || "").toLowerCase();
+    return ["mp4", "mp3", "jpg", "jpeg", "png"].includes(ext);
   });
   const sourceUrl = String(pick(data, ["webpage_url", "original_url"]) || pick(entries[0], ["webpage_url", "original_url", "url"]) || url);
   const mp3Option = sourceUrl ? cacheMp3Download({ sourceUrl, title, strategy: data._successful_strategy }) : null;
