@@ -877,9 +877,19 @@ export const getOrCreateCookiesPath = () => {
     }
   }
 
-  const localPath = join(process.cwd(), "cookies.txt");
-  if (existsSync(localPath)) {
-    return localPath;
+  const pathsToCheck = [
+    join(process.cwd(), "cookies.txt"),
+    join(process.cwd(), "social-downloader", "cookies.txt"),
+    join(fileURLToPath(new URL(".", import.meta.url)), "..", "cookies.txt"),
+    join(fileURLToPath(new URL(".", import.meta.url)), "..", "..", "cookies.txt"),
+    "/var/task/cookies.txt"
+  ];
+
+  for (const p of pathsToCheck) {
+    if (existsSync(p)) {
+      console.log(`[videoService] Found cookies.txt at: ${p}`);
+      return p;
+    }
   }
 
   return null;

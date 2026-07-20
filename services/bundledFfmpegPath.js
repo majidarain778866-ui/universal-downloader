@@ -1,6 +1,7 @@
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { existsSync } from "node:fs";
+import { prepareServerlessBinary } from "./videoService.js";
 
 const serviceDir = fileURLToPath(new URL(".", import.meta.url));
 
@@ -11,5 +12,6 @@ export const resolveBundledFfmpegPath = () => {
     join(process.cwd(), "bin", "ffmpeg"),
     join(serviceDir, "bin", "ffmpeg")
   ];
-  return paths.find(p => existsSync(p)) || paths[0];
+  const found = paths.find(p => existsSync(p)) || paths[0];
+  return prepareServerlessBinary(found, "ffmpeg");
 };
