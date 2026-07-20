@@ -522,9 +522,10 @@ const safeFileName = (name) =>
 
 const brandedFileName = (name, extension) => {
   const cleanExtension = String(extension || "mp4").replace(/^\./, "") || "mp4";
-  const baseName = String(name || "social-download")
+  let baseName = String(name || "social-download")
     .replace(new RegExp(`\\s*-\\s*${BRAND_SUFFIX.replace(".", "\\.")}\\s*$`, "i"), "")
     .replace(/\.[a-z0-9]{2,5}$/i, "");
+  if (baseName.length > 50) baseName = baseName.slice(0, 50).trim() + "...";
   return safeFileName(`${baseName} - ${BRAND_SUFFIX}.${cleanExtension}`);
 };
 
