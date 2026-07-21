@@ -912,10 +912,8 @@ const buildYtDlpArgs = (url, cookiesPath, { useImpersonate = true, useCookies = 
     args.push("--impersonate", "chrome");
   }
 
-  // NOTE: We intentionally do NOT pass --extractor-args youtube:player_client=android,web_creator
-  // because that restricts yt-dlp to only ~360p. Allow yt-dlp to use its full client negotiation
-  // so it can return all available resolutions (144p through 4K).
-
+  // We need specific extractor args to prevent YouTube blocking, while trying to keep high res available
+  args.push("--extractor-args", "youtube:player_client=android,web,ios");
   if (useCookies && cookiesPath) {
     args.push("--cookies", cookiesPath);
   }

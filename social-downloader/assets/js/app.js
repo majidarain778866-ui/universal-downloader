@@ -37,11 +37,11 @@ const filterButtons = document.querySelectorAll(".filter-chip");
 const bottomNavLinks = document.querySelectorAll(".bottom-app-nav a");
 
 const pageKey = document.documentElement.dataset.pageKey?.includes("__") ? "home" : document.documentElement.dataset.pageKey || "home";
-const configuredApiBase = String(window.psdSettings?.apiBase || "https://getintodevice.netlify.app").replace(/\/+$/, "");
+const configuredApiBase = String(window.SOCIAL_DOWNLOADER_API_BASE || "").replace(/\/+$/, "");
 let loaderTimer = null;
 let activeFilter = "all";
 let currentDownloads = [];
-const brandSuffix = String(window.psdSettings?.brandSuffix || "getintodevice.com");
+const brandSuffix = "getintodevice.com";
 
 const apiUrl = (path) => `${configuredApiBase}${path}`;
 
@@ -117,7 +117,7 @@ const safeFileName = (name) =>
     .replace(/[<>:"/\\|?*\x00-\x1F]/g, "")
     .replace(/\s+/g, " ")
     .trim()
-    .slice(0, 45) || "social-download";
+    .slice(0, 80) || "social-download";
 
 const brandedDownloadName = (name, extension = "") => {
   const cleanExtension = String(extension || "").replace(/^\./, "").toLowerCase();
@@ -462,34 +462,6 @@ if (form) {
     event.preventDefault();
     const url = input.value.trim();
     if (!url) return;
-
-    const urlLower = url.toLowerCase();
-    const isYoutube = urlLower.includes("youtube.com") || urlLower.includes("youtu.be");
-    const isTiktok = urlLower.includes("tiktok.com");
-    const isInstagram = urlLower.includes("instagram.com");
-    const isFacebook = urlLower.includes("facebook.com") || urlLower.includes("fb.watch") || urlLower.includes("fb.com");
-    const isTwitter = urlLower.includes("twitter.com") || urlLower.includes("x.com");
-
-    if (isYoutube && window.psdSettings?.enableYoutube === "0") {
-      setStatus("YouTube downloads are disabled on this website.", true);
-      return;
-    }
-    if (isTiktok && window.psdSettings?.enableTiktok === "0") {
-      setStatus("TikTok downloads are disabled on this website.", true);
-      return;
-    }
-    if (isInstagram && window.psdSettings?.enableInstagram === "0") {
-      setStatus("Instagram downloads are disabled on this website.", true);
-      return;
-    }
-    if (isFacebook && window.psdSettings?.enableFacebook === "0") {
-      setStatus("Facebook downloads are disabled on this website.", true);
-      return;
-    }
-    if (isTwitter && window.psdSettings?.enableTwitter === "0") {
-      setStatus("Twitter/X downloads are disabled on this website.", true);
-      return;
-    }
 
     setLoading(true, "Analyzing link...", "Fetching public metadata with yt-dlp");
     startProcessLoader();

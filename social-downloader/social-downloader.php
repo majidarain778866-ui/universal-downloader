@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Premium Social Media Downloader
+ * Plugin Name: Social Downloader App
  * Plugin URI: https://getintodevice.netlify.app
  * Description: Embed a fast, beautiful, glassmorphic social media video and audio downloader (supporting TikTok, Instagram, YouTube, Facebook, X, Pinterest, and 40+ more platforms) using the shortcode [social_downloader].
  * Version: 1.1.0
@@ -17,8 +17,8 @@ if (!defined('PSD_VERSION')) {
     define('PSD_VERSION', '1.1.0');
 }
 
-if (!class_exists('PremiumSocialDownloader')) {
-    class PremiumSocialDownloader {
+if (!class_exists('SocialDownloaderApp')) {
+    class SocialDownloaderApp {
 
     public function __construct() {
         add_shortcode('social_downloader', array($this, 'render_downloader'));
@@ -526,5 +526,5 @@ if (!class_exists('PremiumSocialDownloader')) {
     }
 }
 
-new PremiumSocialDownloader();
+new SocialDownloaderApp();
 }
