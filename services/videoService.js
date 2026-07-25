@@ -881,10 +881,16 @@ export const getOrCreateCookiesPath = () => {
     return cachedCookiesPath;
   }
 
-  if (process.env.COOKIES_CONTENT) {
+  const envCookies =
+    process.env.COOKIES_CONTENT ||
+    process.env.YTDLP_COOKIES ||
+    process.env.YOUTUBE_COOKIES ||
+    process.env.NETLIFY_COOKIES;
+
+  if (envCookies) {
     try {
       const tempPath = join(tmpdir(), "cookies.txt");
-      writeFileSync(tempPath, process.env.COOKIES_CONTENT, "utf8");
+      writeFileSync(tempPath, envCookies, "utf8");
       console.log(`[videoService] Successfully created cookies.txt in temp dir: ${tempPath}`);
       cachedCookiesPath = tempPath;
       return tempPath;
