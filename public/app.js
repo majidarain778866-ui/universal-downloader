@@ -191,11 +191,14 @@ const setPrimaryAction = (link, meta, item, fallbackLabel) => {
     meta.textContent = fallbackLabel;
     return;
   }
+  // Always point to our /api/download proxy so download works correctly
   link.href = assetUrl(item.download_url);
-  link.download = brandedDownloadName(
+  link.removeAttribute("download"); // Let server handle Content-Disposition
+  link.setAttribute("data-download-id", item.id || "");
+  link.setAttribute("data-filename", brandedDownloadName(
     `${title.textContent || "social-download"}-${item.label || fallbackLabel}`,
     item.extension
-  );
+  ));
   meta.textContent = [item.resolution, item.extension?.toUpperCase(), item.size].filter(Boolean).join(" - ") || fallbackLabel;
 };
 
@@ -444,11 +447,12 @@ const renderDownloadCards = (data, downloads) => {
       const link = document.createElement("a");
       link.className = "download-link";
       link.href = assetUrl(item.download_url || `/api/download?id=${encodeURIComponent(item.id)}`);
-      link.download = brandedDownloadName(
+      link.setAttribute("data-download-id", item.id || "");
+      link.setAttribute("data-filename", brandedDownloadName(
         `${data.title || "social-download"}-${item.resolution || originalIndex + 1}`,
         item.extension
-      );
-      link.textContent = "Download";
+      ));
+      link.textContent = "⬇ Download";
 
       actions.append(preview, link);
       card.append(top, meta, actions);
@@ -515,7 +519,7 @@ applyPageContent();
 
 
 
-document.addEventListener("click", (event) => {
+document.addEventListener("click", async (event) => {
   const target = event.target.closest("a.primary-action, a.download-link");
   if (!target || !target.href || target.href.endsWith("#") || target.target === "_blank") return;
   if (target.dataset.downloading) {
@@ -523,28 +527,63 @@ document.addEventListener("click", (event) => {
     return;
   }
   
+  // Check if this is a download button (not a preview link)
+  const isDownload = target.classList.contains("download-link") || target.classList.contains("primary-action");
+  const downloadHref = target.href;
+  const filename = target.getAttribute("data-filename") || target.download || "getintodevice-download";
+  
+  if (!isDownload || !downloadHref || downloadHref.includes("#")) return;
+  
+  event.preventDefault();
   target.dataset.downloading = "true";
   const originalHtml = target.innerHTML;
-  if (target.classList.contains("primary-action")) {
-    const span = target.querySelector("span");
-    if (span) span.textContent = "Processing...";
-  } else {
-    target.textContent = "Processing...";
-  }
+
+  const updateText = (txt) => {
+    if (target.classList.contains("primary-action")) {
+      const span = target.querySelector("span");
+      if (span) span.textContent = txt;
+    } else {
+      target.textContent = txt;
+    }
+  };
+  updateText("⏳ Preparing...");
   target.style.opacity = "0.7";
   target.style.pointerEvents = "none";
-  setStatus("Preparing your download... This may take a minute.");
-  
-  const revert = () => {
+  setStatus("Preparing your download... Please wait.");
+
+  const revert = (msg = "Download started.") => {
     target.innerHTML = originalHtml;
     target.style.opacity = "";
     target.style.pointerEvents = "";
     delete target.dataset.downloading;
-    setStatus("Download started.");
-    setTimeout(() => setStatus(""), 3000);
+    setStatus(msg);
+    setTimeout(() => setStatus(""), 4000);
     window.removeEventListener("blur", revert);
   };
-  
-  window.addEventListener("blur", revert);
-  setTimeout(revert, 45000);
+
+  try {
+    // Try to fetch via our proxy first (gives proper Content-Disposition)
+    const res = await fetch(downloadHref, { method: "GET" });
+    if (res.ok) {
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
+      revert("✅ Download started!");
+      return;
+    }
+  } catch (e) {
+    console.warn("[Download] Proxy fetch failed, falling back to direct:", e.message);
+  }
+
+  // Fallback: open direct URL in new tab (browser will download if content-disposition set)
+  window.open(downloadHref, "_blank");
+  revert("Download opened in new tab.");
+  window.addEventListener("blur", () => revert("Download started."), { once: true });
+  setTimeout(() => revert(""), 45000);
 });
