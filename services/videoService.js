@@ -560,20 +560,43 @@ const getHeaders = (format, entry) => {
 
 const mediaTypeFor = (format) => {
   const ext = String(format.ext || "").toLowerCase();
-  if (["jpg", "jpeg", "png", "webp", "gif"].includes(ext)) return "image";
+  if (["jpg", "jpeg", "png", "webp", "gif", "heic", "avif"].includes(ext)) return "image";
   if (format.vcodec === "none" && format.acodec && format.acodec !== "none") return "audio";
   return "video";
 };
 
-const optionLabel = (format, entryIndex) => {
+const optionLabel = (format, entryIndex, totalEntries = 1) => {
   const type = mediaTypeFor(format);
   const parts = [];
-  if (entryIndex > 0) parts.push(`Item ${entryIndex + 1}`);
-  parts.push(type === "audio" ? "Audio" : type === "image" ? "Image" : "Video");
-  if (format.resolution && format.resolution !== "audio only") parts.push(format.resolution);
-  else if (format.height) parts.push(`${format.height}p`);
-  if (format.format_note && !String(format.format_note).includes("unknown")) parts.push(format.format_note);
-  if (format.ext) parts.push(String(format.ext).toUpperCase());
+  if (entryIndex > 0 && totalEntries > 1) parts.push(`Item ${entryIndex + 1}`);
+  
+  if (type === "image") {
+    const rawExt = String(format.ext || "").toLowerCase();
+    const imgExt = rawExt === "png" ? "PNG" : "JPG";
+    const resStr = format.width && format.height ? `${format.width}x${format.height}` : "HD";
+    parts.push(`Best HD Image (${resStr} ${imgExt})`);
+    return parts.join(" ");
+  }
+
+  if (type === "audio") {
+    return "High Quality Audio (MP3 320kbps)";
+  }
+
+  // Video format (MP4)
+  const height = Number(format.height || 0);
+  let resLabel = "";
+  if (height >= 2160) resLabel = "4K Ultra HD MP4 Video (2160p)";
+  else if (height >= 1440) resLabel = "2K Quad HD MP4 Video (1440p)";
+  else if (height >= 1080) resLabel = "1080p Full HD MP4 Video";
+  else if (height >= 720) resLabel = "720p HD MP4 Video";
+  else if (height >= 480) resLabel = "480p SD MP4 Video";
+  else if (height > 0) resLabel = `${height}p SD MP4 Video`;
+  else resLabel = format.resolution ? `${format.resolution} MP4 Video` : "Best HD MP4 Video";
+
+  parts.push(resLabel);
+  if (format.format_note && !String(format.format_note).includes("unknown") && !/^\d+p$/i.test(String(format.format_note))) {
+    parts.push(format.format_note);
+  }
   return parts.join(" ");
 };
 
@@ -582,11 +605,15 @@ const isWatermarked = (format) =>
     [format.format_id, format.format_note, format.format, format.url].filter(Boolean).join(" ")
   );
 
-const qualityScore = (format) =>
-  Number(format.height || 0) * 1000000 +
-  Number(format.width || 0) * 1000 +
-  Number(format.tbr || 0) +
-  Number(format.filesize || format.filesize_approx || 0) / 1000000;
+const qualityScore = (format) => {
+  const type = mediaTypeFor(format);
+  const height = Number(format.height || 0);
+  const width = Number(format.width || 0);
+  const isMp4 = String(format.ext || "").toLowerCase() === "mp4";
+  const mp4Bonus = isMp4 ? 50000 : 0;
+  const audioBonus = hasAudio(format) ? 10000 : 0;
+  return height * 1000000 + width * 1000 + mp4Bonus + audioBonus + Number(format.tbr || 0) + Number(format.filesize || format.filesize_approx || 0) / 1000000;
+};
 
 const hasAudio = (format) => Boolean(format.acodec && format.acodec !== "none");
 const hasVideo = (format) => Boolean(format.vcodec && format.vcodec !== "none");
@@ -595,7 +622,6 @@ const cacheDownload = ({ format, entry = {}, title, entryIndex = 0 }) => {
   const type = mediaTypeFor(format);
   const sourceUrl = entry.webpage_url || entry.original_url || entry.url;
   const shouldMergeAudio = type === "video" && hasVideo(format) && !hasAudio(format) && format.format_id && sourceUrl;
-  const mergeExt = "mp4"; // Always merge into MP4 container
   const mergeAudioSelector = "ba[ext=m4a]/ba[ext=mp4]/ba";
   
   const isVideoWebm = type === "video" && String(format.ext || "").toLowerCase() === "webm";
@@ -603,7 +629,8 @@ const cacheDownload = ({ format, entry = {}, title, entryIndex = 0 }) => {
   // We need server processing (yt-dlp) if we must merge audio/video, remux webm video to mp4, if we extract audio to MP3, or if it is not a direct protocol (e.g. m3u8, dash)
   const requiresYtDlp = shouldMergeAudio || isVideoWebm || (type === "audio" && sourceUrl) || !isDirectProtocol;
   
-  const ext = type === "video" ? "mp4" : type === "audio" ? "mp3" : String(format.ext || "jpg").replace(/^\./, "");
+  const rawExt = String(format.ext || "").toLowerCase();
+  const ext = type === "video" ? "mp4" : type === "audio" ? "mp3" : (rawExt === "png" ? "png" : "jpg");
   const filename = brandedFileName(`${title}${entryIndex > 0 ? `-${entryIndex + 1}` : ""}`, ext);
   const strategy = entry._successful_strategy || { useCookies: true, useImpersonate: true };
 
@@ -646,7 +673,7 @@ const cacheMp3Download = ({ sourceUrl, title, strategy }) => {
   return {
     id,
     label: "High Quality MP3 Audio",
-    resolution: "320kbps",
+    resolution: "320kbps MP3",
     type: "audio",
     badge: "Audio MP3",
     extension: "mp3",
@@ -679,12 +706,12 @@ const cacheMergedDownload = ({ sourceUrl, title, quality = "high", strategy }) =
 
   return {
     id,
-    label: quality === "normal" ? "Normal quality MP4 with audio" : "High quality MP4 with audio",
-    resolution: quality === "normal" ? "Normal MP4" : "Best MP4",
+    label: quality === "normal" ? "Standard MP4 Video (720p)" : "Best Quality MP4 Video (HD/4K)",
+    resolution: quality === "normal" ? "720p HD MP4" : "Best HD/4K MP4",
     type: "video",
     has_audio: true,
     has_video: true,
-    badge: "Audio included",
+    badge: "Audio Included",
     extension: "mp4",
     format_id: formatSelector,
     size: "",
@@ -704,28 +731,35 @@ const normalizeFormat = (format, entry, title, entryIndex, optionIndex, totalEnt
   const isDirectProtocol = !format.protocol || /^(https?)$/i.test(format.protocol);
   const requiresYtDlp = mergedAudio || isVideoWebm || (type === "audio" && sourceUrl) || !isDirectProtocol;
 
-  const resolution =
-    format.resolution ||
-    (format.width && format.height ? `${format.width}x${format.height}` : type === "audio" ? "Audio only" : type === "image" ? "Full HD Image" : "Original");
+  const height = Number(format.height || 0);
+  let resolution = "";
+  if (height >= 2160) resolution = "2160p (4K Ultra HD)";
+  else if (height >= 1440) resolution = "1440p (2K Quad HD)";
+  else if (height >= 1080) resolution = "1080p (Full HD)";
+  else if (height >= 720) resolution = "720p (HD)";
+  else if (height >= 480) resolution = "480p (SD)";
+  else if (height > 0) resolution = `${height}p`;
+  else resolution = format.resolution || (format.width && format.height ? `${format.width}x${format.height}` : type === "audio" ? "Audio only" : type === "image" ? "Best HD Image" : "Original MP4");
+
+  const rawExt = String(format.ext || "").toLowerCase();
+  const ext = type === "video" ? "mp4" : type === "audio" ? "mp3" : (rawExt === "png" ? "png" : "jpg");
 
   return {
     id,
     label: optionLabel(format, entryIndex, totalEntries) || `Option ${optionIndex + 1}`,
     resolution,
     type,
-    has_audio: mergedAudio || hasAudio(format) || isVideoWebm,
-    has_video: hasVideo(format),
+    has_audio: mergedAudio || hasAudio(format) || isVideoWebm || type === "video",
+    has_video: hasVideo(format) || type === "video",
     badge: isWatermarked(format)
       ? "Watermarked"
       : type === "image"
-        ? (totalEntries > 1 ? `Carousel Photo ${entryIndex + 1}` : "HD Photo")
-        : mergedAudio
-          ? "Audio included"
-          : optionIndex === 0 && type === "video"
-            ? "Best no watermark"
-            : "",
+        ? (totalEntries > 1 ? `Carousel Photo ${entryIndex + 1}` : "Best HD Image")
+        : type === "audio"
+          ? "Audio MP3"
+          : "Best MP4 Video",
     is_watermarked: isWatermarked(format),
-    extension: type === "video" ? "mp4" : type === "audio" ? "mp3" : String(format.ext || "jpg").replace(/^\./, ""),
+    extension: ext,
     format_id: format.format_id || "",
     size: mergedAudio || isVideoWebm ? "" : formatBytes(format.filesize || format.filesize_approx),
     download_url: `/api/download?id=${encodeURIComponent(id)}`,
@@ -735,21 +769,23 @@ const normalizeFormat = (format, entry, title, entryIndex, optionIndex, totalEnt
 
 const normalizeThumbnail = (thumbnail, title) => {
   if (!isHttpUrl(thumbnail)) return null;
+  const isPng = /\.png$/i.test(new URL(thumbnail).pathname);
+  const imgExt = isPng ? "png" : "jpg";
   const id = cacheDownload({
     format: {
       url: thumbnail,
-      ext: new URL(thumbnail).pathname.match(/\.(png|jpe?g|webp|gif)$/i)?.[1] || "jpg"
+      ext: imgExt
     },
     title: `${title}-thumbnail`
   });
 
   return {
     id,
-    label: "Full HD Cover / Thumbnail",
-    resolution: "HD Image",
+    label: `Best HD Cover / Thumbnail (${imgExt.toUpperCase()})`,
+    resolution: "Best HD Image",
     type: "image",
-    badge: "Thumbnail",
-    extension: "jpg",
+    badge: "Best HD Image",
+    extension: imgExt,
     size: "",
     download_url: `/api/download?id=${encodeURIComponent(id)}`,
     preview_url: `/api/download?id=${encodeURIComponent(id)}&preview=1`
@@ -773,7 +809,7 @@ const collectFormats = (entry) => {
     }
   }
 
-  // 1. Sort candidates first by quality so the best format is selected first
+  // 1. Sort candidates by quality score (highest resolution first, preferring MP4)
   const sorted = formats
     .filter((format) => format && isHttpUrl(format.url))
     .filter((format) => !String(format.protocol || "").includes("m3u8"))
@@ -789,13 +825,13 @@ const collectFormats = (entry) => {
       return qualityScore(b) - qualityScore(a);
     });
 
-  // 2. Deduplicate based on type and resolution to avoid listing duplicate files
+  // 2. Deduplicate based on type and height/resolution tier
   const seen = new Set();
   const deduped = [];
   for (const format of sorted) {
     const type = mediaTypeFor(format);
-    const res = format.resolution || (format.width && format.height ? `${format.width}x${format.height}` : format.height || format.format_note || format.format_id);
-    const key = `${type}|${res}`;
+    const height = format.height || 0;
+    const key = height ? `${type}|${height}p` : format.resolution || `${type}|${format.width}x${format.height}` || format.format_note || format.format_id;
     if (!seen.has(key)) {
       seen.add(key);
       deduped.push(format);
@@ -810,6 +846,7 @@ const buildPrimaryActions = (downloads, { sourceUrl, title, strategy }) => {
   const videos = downloads.filter((item) => item.type === "video");
   const completeVideos = videos.filter((item) => item.has_audio !== false);
   const images = downloads.filter((item) => item.type === "image");
+
   const maxResolutionSide = (item) => {
     const values = String(item?.resolution || "")
       .match(/\d+/g)
@@ -817,6 +854,7 @@ const buildPrimaryActions = (downloads, { sourceUrl, title, strategy }) => {
       .filter(Number.isFinite);
     return values?.length ? Math.max(...values) : Number.POSITIVE_INFINITY;
   };
+
   const pickPlayableVideo = (items, { mp4Only = false, maxHeight = Number.POSITIVE_INFINITY } = {}) => {
     const candidates = items.filter((item) => {
       if (item.has_audio === false) return false;
@@ -830,34 +868,39 @@ const buildPrimaryActions = (downloads, { sourceUrl, title, strategy }) => {
       return Number(b.size || 0) - Number(a.size || 0);
     })[0] || null;
   };
+
   const mergedHigh = sourceUrl ? cacheMergedDownload({ sourceUrl, title, quality: "high", strategy }) : null;
   const mergedNormal = sourceUrl ? cacheMergedDownload({ sourceUrl, title, quality: "normal", strategy }) : null;
+
   const directHigh =
     pickPlayableVideo(completeVideos, { mp4Only: true, maxHeight: isNetlifyRuntime ? 1080 : Number.POSITIVE_INFINITY }) ||
     pickPlayableVideo(completeVideos, { mp4Only: true }) ||
     pickPlayableVideo(completeVideos);
+
   const highQuality =
     directHigh ||
     mergedHigh ||
-    pickPlayableVideo(videos, { mp4Only: true, maxHeight: isNetlifyRuntime ? 1080 : Number.POSITIVE_INFINITY }) ||
     pickPlayableVideo(videos, { mp4Only: true }) ||
     pickPlayableVideo(videos) ||
     downloads.find((item) => item.type !== "audio") ||
     downloads[0] ||
     null;
+
   const directNormal =
-    pickPlayableVideo(completeVideos.filter((item) => item !== highQuality), { mp4Only: true, maxHeight: isNetlifyRuntime ? 720 : 720 }) ||
+    pickPlayableVideo(completeVideos.filter((item) => item !== highQuality), { mp4Only: true, maxHeight: 720 }) ||
     completeVideos.find((item) => item !== highQuality && maxResolutionSide(item) <= 720) ||
     completeVideos.find((item) => item !== highQuality && /360|480|540|normal|medium/i.test([item.label, item.resolution].join(" ")));
+
   const normalQuality =
     directNormal ||
     mergedNormal ||
     pickPlayableVideo(videos.filter((item) => item !== highQuality), { mp4Only: true, maxHeight: 720 }) ||
     pickPlayableVideo(videos.filter((item) => item !== highQuality), { maxHeight: 720 }) ||
     highQuality;
+
   const audios = downloads.filter((item) => item.type === "audio");
   const audioMp3 = audios.find((item) => item.extension === "mp3") || audios[0] || null;
-  const thumbnailHd = images.find((item) => /thumbnail|preview/i.test([item.label, item.badge].join(" "))) || images[0] || null;
+  const thumbnailHd = images.find((item) => /thumbnail|preview|cover|photo/i.test([item.label, item.badge].join(" "))) || images[0] || null;
 
   return {
     high_quality: highQuality,
@@ -1131,51 +1174,38 @@ const fetchYouTubeFallback = async (url) => {
   const thumbnail = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
   const maxThumbnail = `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
 
-  const thumbOption = normalizeThumbnail(maxThumbnail, title);
-  
   const videoStreamUrl = `https://www.youtube.com/watch?v=${videoId}`;
-  const videoFormatId = cacheDownload({
-    format: {
-      url: videoStreamUrl,
-      ext: "mp4",
-      width: 1280,
-      height: 720,
-      protocol: "https"
-    },
-    title
-  });
-
-  const audioFormatId = cacheDownload({
-    format: {
-      url: videoStreamUrl,
-      ext: "mp3",
-      protocol: "https"
-    },
-    title: `${title}-audio`
-  });
+  const videoFormat1080 = cacheMergedDownload({ sourceUrl: videoStreamUrl, title, quality: "high", strategy: { useCookies: true, useImpersonate: false } });
+  const videoFormat720 = cacheMergedDownload({ sourceUrl: videoStreamUrl, title, quality: "normal", strategy: { useCookies: true, useImpersonate: false } });
+  const audioOption = cacheMp3Download({ sourceUrl: videoStreamUrl, title });
+  const thumbOption = normalizeThumbnail(maxThumbnail, title);
 
   const downloads = [
     {
-      id: videoFormatId,
-      label: "HD MP4 Video (720p)",
-      resolution: "720p",
+      id: videoFormat1080.id,
+      label: "1080p Full HD MP4 Video",
+      resolution: "1080p (Full HD)",
       type: "video",
       has_audio: true,
       has_video: true,
-      badge: "HD Video",
+      badge: "Best MP4 Video",
       extension: "mp4",
-      download_url: `/api/download?id=${encodeURIComponent(videoFormatId)}`,
-      preview_url: `/api/download?id=${encodeURIComponent(videoFormatId)}&preview=1`
+      download_url: videoFormat1080.download_url,
+      preview_url: videoFormat1080.preview_url
     },
     {
-      id: audioFormatId,
-      label: "High Quality MP3 Audio",
-      resolution: "320kbps",
-      type: "audio",
-      badge: "Audio MP3",
-      extension: "mp3",
-      download_url: `/api/download?id=${encodeURIComponent(audioFormatId)}`
-    }
+      id: videoFormat720.id,
+      label: "720p HD MP4 Video",
+      resolution: "720p (HD)",
+      type: "video",
+      has_audio: true,
+      has_video: true,
+      badge: "Best MP4 Video",
+      extension: "mp4",
+      download_url: videoFormat720.download_url,
+      preview_url: videoFormat720.preview_url
+    },
+    audioOption
   ];
 
   if (thumbOption) downloads.push(thumbOption);
@@ -1206,8 +1236,8 @@ const fetchYouTubeFallback = async (url) => {
     },
     primary_actions: {
       high_quality: downloads[0],
-      normal_quality: downloads[0],
-      audio_mp3: downloads[1],
+      normal_quality: downloads[1],
+      audio_mp3: audioOption,
       thumbnail_hd: thumbOption
     },
     downloads,
