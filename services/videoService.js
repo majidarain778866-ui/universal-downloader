@@ -1000,9 +1000,12 @@ const runYtDlp = async (url) => {
   if (cookiesPath) {
     strategies.push({ useCookies: true, useImpersonate: false, playerClient: "mweb,android,web" });
     strategies.push({ useCookies: true, useImpersonate: false, playerClient: "tv_embedded,android" });
+    strategies.push({ useCookies: true, useImpersonate: false, playerClient: "ios,android" });
   }
   strategies.push({ useCookies: false, useImpersonate: false, playerClient: "mweb,android,web" });
   strategies.push({ useCookies: false, useImpersonate: false, playerClient: "tv_embedded,android" });
+  strategies.push({ useCookies: false, useImpersonate: false, playerClient: "ios,android" });
+  strategies.push({ useCookies: false, useImpersonate: false, playerClient: "web_creator,android_creator" });
 
   let lastError;
 
@@ -1032,7 +1035,7 @@ const runYtDlp = async (url) => {
   const stderr = String(lastError?.stderr || lastError?.message || "");
   console.error("runYtDlp all attempts failed. Stderr:", stderr);
   if (/private|login|cookies|not available|unsupported|unable to extract|unable to download webpage|http error 404|Cannot parse data/i.test(stderr)) {
-    throw new Error("This video is private, unsupported, unavailable, or needs cookies/login access.");
+    throw new Error("This video is private, unsupported, unavailable, or YouTube bot detection blocked access. Please check if link is public or update cookies.");
   }
   const cleanError = stderr.split("\n")
     .map((line) => line.trim())
