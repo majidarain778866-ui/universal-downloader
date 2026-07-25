@@ -958,14 +958,13 @@ const runYtDlp = async (url) => {
     windowsHide: true
   };
 
-  const strategies = [
-    { useCookies: false, useImpersonate: false, playerClient: "tv_embedded,android" },
-    { useCookies: false, useImpersonate: false, playerClient: "mweb,android" },
-    { useCookies: false, useImpersonate: false, playerClient: "ios,android" }
-  ];
+  const strategies = [];
   if (cookiesPath) {
-    strategies.unshift({ useCookies: true, useImpersonate: false, playerClient: "tv_embedded,android" });
+    strategies.push({ useCookies: true, useImpersonate: false, playerClient: "mweb,android,web" });
+    strategies.push({ useCookies: true, useImpersonate: false, playerClient: "tv_embedded,android" });
   }
+  strategies.push({ useCookies: false, useImpersonate: false, playerClient: "mweb,android,web" });
+  strategies.push({ useCookies: false, useImpersonate: false, playerClient: "tv_embedded,android" });
 
   let lastError;
 
