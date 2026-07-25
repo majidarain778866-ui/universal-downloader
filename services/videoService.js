@@ -899,17 +899,21 @@ export const getOrCreateCookiesPath = () => {
     }
   }
 
+  const lambdaRoot = process.env.LAMBDA_TASK_ROOT || "/var/task";
   const pathsToCheck = [
     join(process.cwd(), "cookies.txt"),
     join(process.cwd(), "social-downloader", "cookies.txt"),
     join(fileURLToPath(new URL(".", import.meta.url)), "..", "cookies.txt"),
     join(fileURLToPath(new URL(".", import.meta.url)), "..", "..", "cookies.txt"),
+    join(lambdaRoot, "cookies.txt"),
+    join(lambdaRoot, "src", "cookies.txt"),
     "/var/task/cookies.txt"
   ];
 
   for (const p of pathsToCheck) {
     if (existsSync(p)) {
       console.log(`[videoService] Found cookies.txt at: ${p}`);
+      cachedCookiesPath = p;
       return p;
     }
   }
@@ -924,7 +928,10 @@ const buildYtDlpArgs = (url, cookiesPath, { useImpersonate = false, useCookies =
     "--skip-download",
     "--no-warnings",
     "--no-playlist",
-    "--no-check-certificate"
+    "--no-check-certificate",
+    "--geo-bypass",
+    "--user-agent",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
   ];
 
   if (useImpersonate) {
