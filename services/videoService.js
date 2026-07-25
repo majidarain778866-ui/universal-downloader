@@ -876,7 +876,19 @@ const cleanInfoCache = () => {
 
 let cachedCookiesPath = null;
 
-export const getOrCreateCookiesPath = () => {
+export const formatNetscapeCookies = (rawStr) => {
+  if (!rawStr) return "";
+  let clean = String(rawStr).replace(/\\n/g, "\n");
+  if (!clean.includes("\n") && clean.includes(".youtube.com")) {
+    clean = clean.replace(/(\.(?:youtube|google)\.com)/gi, "\n$1");
+  }
+  if (!clean.startsWith("# Netscape")) {
+    clean = `# Netscape HTTP Cookie File\n# This is a generated file! Do not edit.\n${clean}`;
+  }
+  return clean;
+};
+
+const getOrCreateCookiesPath = () => {
   if (cachedCookiesPath && existsSync(cachedCookiesPath)) {
     return cachedCookiesPath;
   }
@@ -889,8 +901,9 @@ export const getOrCreateCookiesPath = () => {
 
   if (envCookies) {
     try {
+      const formatted = formatNetscapeCookies(envCookies);
       const tempPath = join(tmpdir(), "cookies.txt");
-      writeFileSync(tempPath, envCookies, "utf8");
+      writeFileSync(tempPath, formatted, "utf8");
       console.log(`[videoService] Successfully created cookies.txt in temp dir: ${tempPath}`);
       cachedCookiesPath = tempPath;
       return tempPath;
