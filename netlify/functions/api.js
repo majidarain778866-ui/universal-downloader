@@ -135,7 +135,12 @@ const extensionFromContentType = (contentType, target) => {
 
 const handleVideoInfo = async (req) => {
   const body = await req.json().catch(() => ({}));
-  return streamJson(async () => fetchVideoDetails(body.url));
+  try {
+    const data = await fetchVideoDetails(body.url);
+    return json(data);
+  } catch (error) {
+    return json({ error: error.message || "Failed to fetch video details" }, statusForError(error));
+  }
 };
 
 const streamYtDlpDownload = async (cached, inline = false) => {

@@ -952,23 +952,12 @@ const runYtDlp = async (url) => {
     windowsHide: true
   };
 
-  const clientPresets = [
-    "mweb,android",
-    "tv_html5,android",
-    "android,web,ios",
-    "web_creator,android_creator",
-    "ios,mweb"
-  ];
-
   const strategies = [];
-  for (const client of clientPresets) {
-    if (cookiesPath) {
-      strategies.push({ useCookies: true, useImpersonate: false, playerClient: client });
-    }
-    strategies.push({ useCookies: false, useImpersonate: false, playerClient: client });
+  if (cookiesPath) {
+    strategies.push({ useCookies: true, useImpersonate: false, playerClient: "mweb,android,web" });
   }
-
-  // Impersonate fallback
+  strategies.push({ useCookies: false, useImpersonate: false, playerClient: "mweb,android,web" });
+  strategies.push({ useCookies: false, useImpersonate: false, playerClient: "tv_html5,android" });
   strategies.push({ useCookies: false, useImpersonate: true, playerClient: "mweb,android" });
 
   let lastError;
