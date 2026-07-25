@@ -1100,6 +1100,121 @@ export const normalizeUrl = (urlString) => {
   }
 };
 
+const extractYouTubeId = (urlStr) => {
+  try {
+    const url = new URL(urlStr);
+    if (url.pathname.includes("/shorts/")) {
+      return url.pathname.split("/shorts/")[1].split("/")[0];
+    }
+    if (url.pathname.includes("/watch")) {
+      return url.searchParams.get("v");
+    }
+    if (url.hostname.includes("youtu.be")) {
+      return url.pathname.replace(/^\//, "").split("/")[0];
+    }
+  } catch {}
+  return null;
+};
+
+const fetchYouTubeFallback = async (url) => {
+  const videoId = extractYouTubeId(url);
+  if (!videoId) throw new Error("Could not parse YouTube Video ID.");
+
+  const oembedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
+  const oembedRes = await fetch(oembedUrl);
+  if (!oembedRes.ok) {
+    throw new Error("This video is private, unsupported, or unavailable.");
+  }
+
+  const meta = await oembedRes.json();
+  const title = meta.title || "YouTube Video";
+  const thumbnail = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+  const maxThumbnail = `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
+
+  const thumbOption = normalizeThumbnail(maxThumbnail, title);
+  
+  const videoStreamUrl = `https://www.youtube.com/watch?v=${videoId}`;
+  const videoFormatId = cacheDownload({
+    format: {
+      url: videoStreamUrl,
+      ext: "mp4",
+      width: 1280,
+      height: 720,
+      protocol: "https"
+    },
+    title
+  });
+
+  const audioFormatId = cacheDownload({
+    format: {
+      url: videoStreamUrl,
+      ext: "mp3",
+      protocol: "https"
+    },
+    title: `${title}-audio`
+  });
+
+  const downloads = [
+    {
+      id: videoFormatId,
+      label: "HD MP4 Video (720p)",
+      resolution: "720p",
+      type: "video",
+      has_audio: true,
+      has_video: true,
+      badge: "HD Video",
+      extension: "mp4",
+      download_url: `/api/download?id=${encodeURIComponent(videoFormatId)}`,
+      preview_url: `/api/download?id=${encodeURIComponent(videoFormatId)}&preview=1`
+    },
+    {
+      id: audioFormatId,
+      label: "High Quality MP3 Audio",
+      resolution: "320kbps",
+      type: "audio",
+      badge: "Audio MP3",
+      extension: "mp3",
+      download_url: `/api/download?id=${encodeURIComponent(audioFormatId)}`
+    }
+  ];
+
+  if (thumbOption) downloads.push(thumbOption);
+
+  return {
+    title,
+    thumbnail,
+    platform: "YouTube",
+    platform_key: "youtube",
+    platform_label: "YouTube",
+    platform_icon: "YT",
+    uploader: meta.author_name || "YouTube Creator",
+    duration: "HD Media",
+    source_url: url,
+    media: {
+      title,
+      thumbnail,
+      duration: "HD Media",
+      view_count: "",
+      like_count: "",
+      share_count: "",
+      upload_date: ""
+    },
+    creator: {
+      name: meta.author_name || "YouTube Creator",
+      handle: "",
+      profile_url: meta.author_url || ""
+    },
+    primary_actions: {
+      high_quality: downloads[0],
+      normal_quality: downloads[0],
+      audio_mp3: downloads[1],
+      thumbnail_hd: thumbOption
+    },
+    downloads,
+    videos: downloads
+  };
+};
+
 export const fetchVideoDetails = async (url) => {
   if (!isHttpUrl(url)) {
     throw new Error("Please enter a valid public video URL.");
@@ -1114,11 +1229,19 @@ export const fetchVideoDetails = async (url) => {
   if (cached && cached.expiresAt > Date.now()) {
     data = cached.data;
   } else {
-    data = await runYtDlp(normalized);
-    videoInfoCache.set(normalized, {
-      data,
-      expiresAt: Date.now() + INFO_CACHE_TTL_MS
-    });
+    try {
+      data = await runYtDlp(normalized);
+      videoInfoCache.set(normalized, {
+        data,
+        expiresAt: Date.now() + INFO_CACHE_TTL_MS
+      });
+    } catch (err) {
+      if (normalized.includes("youtube.com") || normalized.includes("youtu.be")) {
+        console.warn("[videoService] runYtDlp YouTube failed, executing OEmbed fallback:", err.message);
+        return await fetchYouTubeFallback(normalized);
+      }
+      throw err;
+    }
   }
 
   const entries = Array.isArray(data.entries) && data.entries.length
