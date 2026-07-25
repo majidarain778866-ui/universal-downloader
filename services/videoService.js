@@ -42,7 +42,8 @@ if (bundledPythonPath) {
 export let pythonCmd = "python3";
 export let ytDlpArgs = ["-m", "yt_dlp"];
 
-const isServerless = Boolean(process.env.NETLIFY || process.env.VERCEL || process.env.NOW_BUILDER || process.env.VERCEL_ENV || process.env.LAMBDA_TASK_ROOT);
+export const isServerless = Boolean(process.env.NETLIFY || process.env.VERCEL || process.env.NOW_BUILDER || process.env.VERCEL_ENV || process.env.LAMBDA_TASK_ROOT);
+export const isVercel = Boolean(process.env.VERCEL || process.env.NOW_BUILDER || process.env.VERCEL_ENV);
 let hasPythonYtDlp = false;
 
 // Respect explicit PYTHON env var (set in Dockerfile)
@@ -1250,7 +1251,7 @@ const fetchYouTubeFallback = async (url) => {
 };
 
 const fetchTikTokFallback = async (url) => {
-  const res = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`);
+  const res = await fetch(`https://tikwm.com/api/?url=${encodeURIComponent(url)}`);
   const json = await res.json().catch(() => ({}));
   if (!json.data || !json.data.play) throw new Error("Could not extract TikTok video link. Please check if link is public.");
 

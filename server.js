@@ -414,11 +414,16 @@ const handleDownloadProxy = async (req, res) => {
   }
 
   if (cached.requiresYtDlp) {
-    await streamYtDlpDownload(cached, res, { inline: isPreview });
-    return;
+    try {
+      await streamYtDlpDownload(cached, res, { inline: isPreview });
+      return;
+    } catch (err) {
+      console.warn("[server.js] streamYtDlpDownload failed, falling back to direct media proxy:", err.message);
+    }
   }
 
-  if (!cached.url || !isHttpUrl(cached.url)) {
+  const mediaTargetUrl = cached.url || cached.sourceUrl;
+  if (!mediaTargetUrl || !isHttpUrl(mediaTargetUrl)) {
     sendJson(res, 400, { error: "A valid download URL is required." });
     return;
   }
@@ -427,21 +432,25 @@ const handleDownloadProxy = async (req, res) => {
   const timeout = setTimeout(() => controller.abort(), DOWNLOAD_HEADER_TIMEOUT_MS);
   res.on("close", () => controller.abort());
 
-  const upstream = await fetch(cached.url, {
+  const upstream = await fetch(mediaTargetUrl, {
     headers: cached.headers,
     redirect: "follow",
     signal: controller.signal
   }).finally(() => clearTimeout(timeout));
 
   if (!upstream.ok || !upstream.body) {
-    sendJson(res, upstream.status || 502, {
-      error: `Download server returned ${upstream.status || "an empty response"}.`
+    console.warn(`[server.js] Upstream returned ${upstream?.status}, redirecting directly to media target URL...`);
+    res.writeHead(302, {
+      "location": mediaTargetUrl,
+      "cache-control": "no-store",
+      ...corsHeaders
     });
+    res.end();
     return;
   }
 
   const contentType = upstream.headers.get("content-type") || "application/octet-stream";
-  const extension = extensionFromContentType(contentType, cached.url);
+  const extension = extensionFromContentType(contentType, mediaTargetUrl);
   const baseName = cached.filename;
   const finalName = baseName.includes(".") ? baseName : `${baseName}${extension}`;
 
