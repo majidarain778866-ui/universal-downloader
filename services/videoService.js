@@ -878,14 +878,32 @@ let cachedCookiesPath = null;
 
 export const formatNetscapeCookies = (rawStr) => {
   if (!rawStr) return "";
-  let clean = String(rawStr).replace(/\\n/g, "\n");
-  if (!clean.includes("\n") && clean.includes(".youtube.com")) {
-    clean = clean.replace(/(\.(?:youtube|google)\.com)/gi, "\n$1");
+  let str = String(rawStr).replace(/\\n/g, "\n").replace(/\\t/g, "\t");
+
+  const lines = [
+    "# Netscape HTTP Cookie File",
+    "# http://curl.haxx.se/rfc/cookie_spec.html",
+    "# This is a generated file! Do not edit.",
+    ""
+  ];
+
+  const cookieRegex = /(\.?youtube\.com|\.?google\.com|\.tiktok\.com|\.instagram\.com)\s+(TRUE|FALSE)\s+(\/.*?)\s+(TRUE|FALSE)\s+(\d+)\s+([^\s]+)\s+([^\s]+)/gi;
+  let match;
+  let foundCount = 0;
+  while ((match = cookieRegex.exec(str)) !== null) {
+    foundCount++;
+    const [, domain, flag, path, secure, expiration, name, value] = match;
+    lines.push(`${domain}\t${flag.toUpperCase()}\t${path}\t${secure.toUpperCase()}\t${expiration}\t${name}\t${value}`);
   }
-  if (!clean.startsWith("# Netscape")) {
-    clean = `# Netscape HTTP Cookie File\n# This is a generated file! Do not edit.\n${clean}`;
+
+  if (foundCount > 0) {
+    return lines.join("\n");
   }
-  return clean;
+
+  if (!str.startsWith("# Netscape")) {
+    str = `# Netscape HTTP Cookie File\n# This is a generated file! Do not edit.\n${str}`;
+  }
+  return str;
 };
 
 export const getOrCreateCookiesPath = () => {
