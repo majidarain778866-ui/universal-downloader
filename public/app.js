@@ -519,21 +519,20 @@ applyPageContent();
 
 
 
-document.addEventListener("click", async (event) => {
+document.addEventListener("click", (event) => {
   const target = event.target.closest("a.primary-action, a.download-link");
   if (!target || !target.href || target.href.endsWith("#") || target.target === "_blank") return;
   if (target.dataset.downloading) {
     event.preventDefault();
     return;
   }
-  
-  // Check if this is a download button (not a preview link)
+
   const isDownload = target.classList.contains("download-link") || target.classList.contains("primary-action");
   const downloadHref = target.href;
-  const filename = target.getAttribute("data-filename") || target.download || "getintodevice-download";
-  
+  const filename = target.getAttribute("data-filename") || "getintodevice-download";
+
   if (!isDownload || !downloadHref || downloadHref.includes("#")) return;
-  
+
   event.preventDefault();
   target.dataset.downloading = "true";
   const originalHtml = target.innerHTML;
@@ -549,41 +548,31 @@ document.addEventListener("click", async (event) => {
   updateText("⏳ Preparing...");
   target.style.opacity = "0.7";
   target.style.pointerEvents = "none";
-  setStatus("Preparing your download... Please wait.");
+  setStatus("Starting your download...");
 
-  const revert = (msg = "Download started.") => {
+  const revert = (msg = "✅ Download started!") => {
     target.innerHTML = originalHtml;
     target.style.opacity = "";
     target.style.pointerEvents = "";
     delete target.dataset.downloading;
     setStatus(msg);
-    setTimeout(() => setStatus(""), 4000);
-    window.removeEventListener("blur", revert);
+    setTimeout(() => setStatus(""), 5000);
   };
 
-  try {
-    // Try to fetch via our proxy first (gives proper Content-Disposition)
-    const res = await fetch(downloadHref, { method: "GET" });
-    if (res.ok) {
-      const blob = await res.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = blobUrl;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
-      revert("✅ Download started!");
-      return;
-    }
-  } catch (e) {
-    console.warn("[Download] Proxy fetch failed, falling back to direct:", e.message);
-  }
+  // Use a hidden anchor click — same-origin /api/download will stream with Content-Disposition
+  // This works reliably for ALL file sizes (no browser memory limit like fetch+blob)
+  const a = document.createElement("a");
+  a.href = downloadHref;
+  a.download = filename;
+  a.style.display = "none";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 
-  // Fallback: open direct URL in new tab (browser will download if content-disposition set)
-  window.open(downloadHref, "_blank");
-  revert("Download opened in new tab.");
-  window.addEventListener("blur", () => revert("Download started."), { once: true });
-  setTimeout(() => revert(""), 45000);
+  // Revert button state after short delay (download starts in background)
+  setTimeout(() => revert("✅ Download started!"), 1500);
+
+  // Also revert when browser focuses back (indicates download dialog appeared)
+  window.addEventListener("blur", () => setTimeout(() => revert("✅ Download started!"), 500), { once: true });
+  setTimeout(() => revert(""), 30000);
 });

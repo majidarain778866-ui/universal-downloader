@@ -2,7 +2,12 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "functions": {
-    "api/*.js": {
+    "api/download.js": {
+      "includeFiles": "netlify/functions/bin/**",
+      "memory": 1024,
+      "maxDuration": 60
+    },
+    "api/video-info.js": {
       "includeFiles": "netlify/functions/bin/**",
       "memory": 1024,
       "maxDuration": 60
