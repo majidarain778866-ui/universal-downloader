@@ -44,6 +44,7 @@ export let ytDlpArgs = ["-m", "yt_dlp"];
 
 let hasPythonYtDlp = false;
 const isNetlify = Boolean(process.env.NETLIFY || process.env.LAMBDA_TASK_ROOT);
+const isVercel = Boolean(process.env.VERCEL || process.env.NOW_BUILDER || process.env.VERCEL_ENV);
 
 // Respect explicit PYTHON env var (set in Dockerfile)
 const envPython = process.env.PYTHON;
@@ -1433,6 +1434,136 @@ const fetchTwitterFallback = async (url) => {
   };
 };
 
+const fetchFacebookFallback = async (url) => {
+  // Use Cobalt.tools API - a free open-source media downloader API
+  const cobaltRes = await fetch("https://api.cobalt.tools/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+      "User-Agent": "SocialDownloader/1.0"
+    },
+    body: JSON.stringify({ url, videoQuality: "max", filenameStyle: "basic" })
+  }).catch(() => null);
+
+  if (cobaltRes && cobaltRes.ok) {
+    const cobData = await cobaltRes.json().catch(() => ({}));
+    const videoUrl = cobData.url || (cobData.status === "stream" ? cobData.url : null);
+    if (videoUrl) {
+      const title = cobData.filename?.replace(/\.[^.]+$/, "") || "Facebook Video";
+      const vId = cacheDownload({ format: { url: videoUrl, ext: "mp4" }, title });
+      const downloads = [{
+        id: vId, label: "Facebook HD MP4 Video", resolution: "Best HD MP4",
+        type: "video", has_audio: true, has_video: true, badge: "Best MP4 Video", extension: "mp4",
+        download_url: `/api/download?id=${encodeURIComponent(vId)}`,
+        preview_url: `/api/download?id=${encodeURIComponent(vId)}&preview=1`
+      }];
+      return {
+        title, thumbnail: "", platform: "Facebook", platform_key: "facebook",
+        platform_label: "Facebook", platform_icon: "FB", uploader: "Facebook Creator",
+        duration: "HD Media", source_url: url,
+        primary_actions: { high_quality: downloads[0], normal_quality: downloads[0], audio_mp3: null, thumbnail_hd: null },
+        downloads, videos: downloads
+      };
+    }
+  }
+
+  // Fallback: try to extract video from Facebook share URL directly
+  const fbRes = await fetch(url, {
+    headers: {
+      "User-Agent": "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+      "Accept-Language": "en-US,en;q=0.9"
+    }
+  }).catch(() => null);
+
+  if (fbRes && fbRes.ok) {
+    const html = await fbRes.text().catch(() => "");
+    const mp4Match = html.match(/"(?:browser_native_hd_url|playable_url_quality_hd|browser_native_sd_url|playable_url)":\s*"([^"]+\.mp4[^"]*)"/);
+    const thumbMatch = html.match(/"preferred_thumbnail":\s*\{[^}]*"uri":\s*"([^"]+)"/);
+    const titleMatch = html.match(/<title>([^<]{5,200})<\/title>/);
+
+    const videoUrl = mp4Match ? mp4Match[1].replace(/\\\//g, "/").replace(/\\u0025/g, "%") : null;
+    const thumbUrl = thumbMatch ? thumbMatch[1].replace(/\\\//g, "/") : null;
+    const title = titleMatch ? titleMatch[1].replace(/ \| Facebook$/, "").replace(/&amp;/g, "&").trim() : "Facebook Video";
+
+    if (videoUrl || thumbUrl) {
+      const downloads = [];
+      if (videoUrl) {
+        const vId = cacheDownload({ format: { url: videoUrl, ext: "mp4" }, title });
+        downloads.push({
+          id: vId, label: "Facebook HD MP4 Video", resolution: "Best HD MP4",
+          type: "video", has_audio: true, has_video: true, badge: "Best MP4 Video", extension: "mp4",
+          download_url: `/api/download?id=${encodeURIComponent(vId)}`,
+          preview_url: `/api/download?id=${encodeURIComponent(vId)}&preview=1`
+        });
+      }
+      if (thumbUrl) {
+        const tOpt = normalizeThumbnail(thumbUrl, title);
+        if (tOpt) downloads.push(tOpt);
+      }
+      return {
+        title, thumbnail: thumbUrl || "", platform: "Facebook", platform_key: "facebook",
+        platform_label: "Facebook", platform_icon: "FB", uploader: "Facebook Creator",
+        duration: "HD Media", source_url: url,
+        primary_actions: {
+          high_quality: downloads[0] || null, normal_quality: downloads[0] || null, audio_mp3: null,
+          thumbnail_hd: downloads.find(d => d.type === "image") || null
+        },
+        downloads, videos: downloads
+      };
+    }
+  }
+
+  throw new Error("Could not extract Facebook video. Please ensure the post is public and try again.");
+};
+
+const routePlatformFallback = async (url, originalErr) => {
+  if (url.includes("tiktok.com") || url.includes("vm.tiktok.com")) {
+    return await fetchTikTokFallback(url);
+  }
+  if (url.includes("twitter.com") || url.includes("x.com") || url.includes("t.co")) {
+    return await fetchTwitterFallback(url);
+  }
+  if (url.includes("instagram.com") || url.includes("instagr.am")) {
+    return await fetchInstagramFallback(url);
+  }
+  if (url.includes("facebook.com") || url.includes("fb.watch") || url.includes("fb.com")) {
+    return await fetchFacebookFallback(url);
+  }
+  if (url.includes("youtube.com") || url.includes("youtu.be")) {
+    return await fetchYouTubeFallback(url);
+  }
+  // Generic platforms: try cobalt.tools API as last resort
+  const cobaltRes = await fetch("https://api.cobalt.tools/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Accept": "application/json" },
+    body: JSON.stringify({ url, videoQuality: "max", filenameStyle: "basic" })
+  }).catch(() => null);
+  if (cobaltRes && cobaltRes.ok) {
+    const cobData = await cobaltRes.json().catch(() => ({}));
+    const videoUrl = cobData.url;
+    if (videoUrl) {
+      const title = cobData.filename?.replace(/\.[^.]+$/, "") || "Media Download";
+      const vId = cacheDownload({ format: { url: videoUrl, ext: "mp4" }, title });
+      const downloads = [{
+        id: vId, label: "Best Quality MP4 Video", resolution: "Best MP4",
+        type: "video", has_audio: true, has_video: true, badge: "Best MP4 Video", extension: "mp4",
+        download_url: `/api/download?id=${encodeURIComponent(vId)}`,
+        preview_url: `/api/download?id=${encodeURIComponent(vId)}&preview=1`
+      }];
+      return {
+        title, thumbnail: "", platform: "Social Media", platform_key: "generic",
+        platform_label: "Social Media", platform_icon: "DL", uploader: "Creator",
+        duration: "HD Media", source_url: url,
+        primary_actions: { high_quality: downloads[0], normal_quality: downloads[0], audio_mp3: null, thumbnail_hd: null },
+        downloads, videos: downloads
+      };
+    }
+  }
+  if (originalErr) throw originalErr;
+  throw new Error("This platform is not supported yet. Please try YouTube, TikTok, Instagram, Twitter, or Facebook links.");
+};
+
 export const fetchVideoDetails = async (url) => {
   if (!isHttpUrl(url)) {
     throw new Error("Please enter a valid public video URL.");
@@ -1447,27 +1578,23 @@ export const fetchVideoDetails = async (url) => {
   if (cached && cached.expiresAt > Date.now()) {
     data = cached.data;
   } else {
-    try {
-      data = await runYtDlp(normalized);
-      videoInfoCache.set(normalized, {
-        data,
-        expiresAt: Date.now() + INFO_CACHE_TTL_MS
-      });
-    } catch (err) {
-      console.warn("[videoService] runYtDlp failed, executing platform fallbacks:", err.message);
-      if (normalized.includes("tiktok.com")) {
-        return await fetchTikTokFallback(normalized);
+    // On Vercel serverless, skip yt-dlp entirely and route directly to platform fallbacks
+    const useDirectFallback = isVercel;
+    if (!useDirectFallback) {
+      try {
+        data = await runYtDlp(normalized);
+        videoInfoCache.set(normalized, {
+          data,
+          expiresAt: Date.now() + INFO_CACHE_TTL_MS
+        });
+      } catch (err) {
+        console.warn("[videoService] runYtDlp failed, trying platform fallbacks:", err.message);
+        // fall through to platform fallback routing below
+        return await routePlatformFallback(normalized, err);
       }
-      if (normalized.includes("twitter.com") || normalized.includes("x.com")) {
-        return await fetchTwitterFallback(normalized);
-      }
-      if (normalized.includes("instagram.com") || normalized.includes("instagr.am")) {
-        return await fetchInstagramFallback(normalized);
-      }
-      if (normalized.includes("youtube.com") || normalized.includes("youtu.be")) {
-        return await fetchYouTubeFallback(normalized);
-      }
-      throw err;
+    } else {
+      console.log("[videoService] Vercel env detected – using direct platform fallbacks");
+      return await routePlatformFallback(normalized, null);
     }
   }
 
