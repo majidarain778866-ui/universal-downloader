@@ -1242,6 +1242,9 @@ const fetchYouTubeFallback = async (url) => {
     },
     downloads,
     videos: downloads
+  };
+};
+
 const fetchTikTokFallback = async (url) => {
   const res = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`);
   const json = await res.json().catch(() => ({}));
@@ -1305,6 +1308,131 @@ const fetchTikTokFallback = async (url) => {
   };
 };
 
+const fetchInstagramFallback = async (url) => {
+  const cleanUrl = url.split("?")[0].replace(/\/+$/, "");
+  const embedUrl = `${cleanUrl}/embed/captioned/`;
+  const htmlRes = await fetch(embedUrl, {
+    headers: {
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+    }
+  }).catch(() => null);
+
+  let videoUrl = null;
+  let imgUrl = null;
+  if (htmlRes && htmlRes.ok) {
+    const html = await htmlRes.text();
+    const videoMatch = html.match(/video_url\\?":\\?"([^"]+)\\?"/i) || html.match(/src=\\?"(https:\/\/[^"]+\.mp4[^"]*)\\?"/i);
+    videoUrl = videoMatch ? videoMatch[1].replace(/\\/g, "").replace(/&amp;/g, "&") : null;
+    const imgMatch = html.match(/display_url\\?":\\?"([^"]+)\\?"/i) || html.match(/src=\\?"(https:\/\/[^"]+\.jpg[^"]*)\\?"/i);
+    imgUrl = imgMatch ? imgMatch[1].replace(/\\/g, "").replace(/&amp;/g, "&") : null;
+  }
+
+  if (!videoUrl && !imgUrl) {
+    throw new Error("This Instagram post is private, login-protected, or unavailable.");
+  }
+
+  const title = "Instagram Media";
+  const downloads = [];
+  if (videoUrl) {
+    const vId = cacheDownload({ format: { url: videoUrl, ext: "mp4" }, title });
+    downloads.push({
+      id: vId,
+      label: "Instagram HD MP4 Video",
+      resolution: "Best HD MP4",
+      type: "video",
+      has_audio: true,
+      has_video: true,
+      badge: "Best MP4 Video",
+      extension: "mp4",
+      download_url: `/api/download?id=${encodeURIComponent(vId)}`,
+      preview_url: `/api/download?id=${encodeURIComponent(vId)}&preview=1`
+    });
+  }
+  if (imgUrl) {
+    const thumbOpt = normalizeThumbnail(imgUrl, title);
+    if (thumbOpt) downloads.push(thumbOpt);
+  }
+
+  return {
+    title,
+    thumbnail: imgUrl || "",
+    platform: "Instagram",
+    platform_key: "instagram",
+    platform_label: "Instagram",
+    platform_icon: "IG",
+    uploader: "Instagram Creator",
+    duration: "HD Media",
+    source_url: url,
+    primary_actions: {
+      high_quality: downloads[0] || null,
+      normal_quality: downloads[0] || null,
+      audio_mp3: null,
+      thumbnail_hd: downloads.find(d => d.type === "image") || null
+    },
+    downloads,
+    videos: downloads
+  };
+};
+
+const fetchTwitterFallback = async (url) => {
+  const statusIdMatch = url.match(/status\/(\d+)/);
+  if (!statusIdMatch) throw new Error("Could not parse Twitter post ID.");
+  const statusId = statusIdMatch[1];
+
+  const res = await fetch(`https://api.fxtwitter.com/status/${statusId}`);
+  const json = await res.json().catch(() => ({}));
+  if (!json.tweet) throw new Error("Could not fetch Twitter video media. Please check if link contains a video.");
+
+  const tweet = json.tweet;
+  const title = tweet.text?.slice(0, 80) || "Twitter Video";
+  const videoObj = tweet.media?.videos?.[0] || tweet.media_extended?.find(m => m.type === "video");
+  const videoUrl = videoObj?.url || videoObj?.variants?.sort((a,b) => (b.bitrate||0)-(a.bitrate||0))?.[0]?.url;
+  const thumbUrl = tweet.media?.photos?.[0]?.url || tweet.media_extended?.[0]?.thumbnail_url || tweet.author?.avatar_url;
+
+  if (!videoUrl && !thumbUrl) throw new Error("No video media found in this tweet.");
+
+  const downloads = [];
+  if (videoUrl) {
+    const vId = cacheDownload({ format: { url: videoUrl, ext: "mp4" }, title });
+    downloads.push({
+      id: vId,
+      label: "Twitter HD MP4 Video",
+      resolution: "Best HD MP4",
+      type: "video",
+      has_audio: true,
+      has_video: true,
+      badge: "Best MP4 Video",
+      extension: "mp4",
+      download_url: `/api/download?id=${encodeURIComponent(vId)}`,
+      preview_url: `/api/download?id=${encodeURIComponent(vId)}&preview=1`
+    });
+  }
+  if (thumbUrl) {
+    const thumbOpt = normalizeThumbnail(thumbUrl, title);
+    if (thumbOpt) downloads.push(thumbOpt);
+  }
+
+  return {
+    title,
+    thumbnail: thumbUrl || "",
+    platform: "X / Twitter",
+    platform_key: "twitter",
+    platform_label: "X / Twitter",
+    platform_icon: "X",
+    uploader: tweet.author?.name || "Twitter User",
+    duration: "HD Media",
+    source_url: url,
+    primary_actions: {
+      high_quality: downloads[0] || null,
+      normal_quality: downloads[0] || null,
+      audio_mp3: null,
+      thumbnail_hd: downloads.find(d => d.type === "image") || null
+    },
+    downloads,
+    videos: downloads
+  };
+};
+
 export const fetchVideoDetails = async (url) => {
   if (!isHttpUrl(url)) {
     throw new Error("Please enter a valid public video URL.");
@@ -1329,6 +1457,12 @@ export const fetchVideoDetails = async (url) => {
       console.warn("[videoService] runYtDlp failed, executing platform fallbacks:", err.message);
       if (normalized.includes("tiktok.com")) {
         return await fetchTikTokFallback(normalized);
+      }
+      if (normalized.includes("twitter.com") || normalized.includes("x.com")) {
+        return await fetchTwitterFallback(normalized);
+      }
+      if (normalized.includes("instagram.com") || normalized.includes("instagr.am")) {
+        return await fetchInstagramFallback(normalized);
       }
       if (normalized.includes("youtube.com") || normalized.includes("youtu.be")) {
         return await fetchYouTubeFallback(normalized);
