@@ -12,7 +12,7 @@ import { tmpdir } from "node:os";
 export const prepareServerlessBinary = (srcPath, name) => {
   if (!srcPath || !existsSync(srcPath)) return srcPath;
   
-  const isServerless = Boolean(process.env.NETLIFY || process.env.LAMBDA_TASK_ROOT);
+  const isServerless = Boolean(process.env.NETLIFY || process.env.VERCEL || process.env.NOW_BUILDER || process.env.LAMBDA_TASK_ROOT);
   if (!isServerless) return srcPath;
 
   const destPath = join(tmpdir(), name);
