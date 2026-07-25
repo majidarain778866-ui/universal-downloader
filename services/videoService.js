@@ -1049,8 +1049,10 @@ const runYtDlp = async (url) => {
     strategies.push({ useCookies: true, useImpersonate: false, playerClient: "mweb,android,web" });
     strategies.push({ useCookies: true, useImpersonate: false, playerClient: "tv_embedded,android" });
     strategies.push({ useCookies: true, useImpersonate: false, playerClient: "ios,android" });
+    strategies.push({ useCookies: true, useImpersonate: true, playerClient: "mweb,android,web" });
   }
   strategies.push({ useCookies: false, useImpersonate: false, playerClient: "mweb,android,web" });
+  strategies.push({ useCookies: false, useImpersonate: true, playerClient: "mweb,android,web" });
   strategies.push({ useCookies: false, useImpersonate: false, playerClient: "tv_embedded,android" });
   strategies.push({ useCookies: false, useImpersonate: false, playerClient: "ios,android" });
   strategies.push({ useCookies: false, useImpersonate: false, playerClient: "web_creator,android_creator" });
