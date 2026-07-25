@@ -888,7 +888,7 @@ export const formatNetscapeCookies = (rawStr) => {
   return clean;
 };
 
-const getOrCreateCookiesPath = () => {
+export const getOrCreateCookiesPath = () => {
   if (cachedCookiesPath && existsSync(cachedCookiesPath)) {
     return cachedCookiesPath;
   }
