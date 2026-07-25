@@ -635,7 +635,7 @@ const cacheDownload = ({ format, entry = {}, title, entryIndex = 0 }) => {
   const strategy = entry._successful_strategy || { useCookies: true, useImpersonate: true };
 
   const payload = {
-    url: requiresYtDlp ? "" : format.url,
+    url: format.url || sourceUrl || "",
     sourceUrl,
     formatId: format.format_id,
     formatSelector: shouldMergeAudio
@@ -1242,6 +1242,66 @@ const fetchYouTubeFallback = async (url) => {
     },
     downloads,
     videos: downloads
+const fetchTikTokFallback = async (url) => {
+  const res = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`);
+  const json = await res.json().catch(() => ({}));
+  if (!json.data || !json.data.play) throw new Error("Could not extract TikTok video link. Please check if link is public.");
+
+  const title = json.data.title || "TikTok Video";
+  const videoUrl = json.data.play;
+  const coverUrl = json.data.cover || json.data.origin_cover;
+
+  const videoFormatId = cacheDownload({ format: { url: videoUrl, ext: "mp4", height: 720 }, title });
+  const audioFormatId = json.data.music ? cacheDownload({ format: { url: json.data.music, ext: "mp3" }, title: `${title}-audio` }) : null;
+  const thumbOption = coverUrl ? normalizeThumbnail(coverUrl, title) : null;
+
+  const downloads = [
+    {
+      id: videoFormatId,
+      label: "No Watermark HD MP4 Video",
+      resolution: "720p (HD)",
+      type: "video",
+      has_audio: true,
+      has_video: true,
+      badge: "Best MP4 Video",
+      extension: "mp4",
+      download_url: `/api/download?id=${encodeURIComponent(videoFormatId)}`,
+      preview_url: `/api/download?id=${encodeURIComponent(videoFormatId)}&preview=1`
+    }
+  ];
+  if (audioFormatId) {
+    downloads.push({
+      id: audioFormatId,
+      label: "TikTok Audio MP3",
+      resolution: "320kbps MP3",
+      type: "audio",
+      badge: "Audio MP3",
+      extension: "mp3",
+      download_url: `/api/download?id=${encodeURIComponent(audioFormatId)}`
+    });
+  }
+  if (thumbOption) downloads.push(thumbOption);
+
+  return {
+    title,
+    thumbnail: coverUrl || "",
+    platform: "TikTok",
+    platform_key: "tiktok",
+    platform_label: "TikTok",
+    platform_icon: "TT",
+    uploader: json.data.author?.nickname || "TikTok Creator",
+    duration: formatDuration(json.data.duration),
+    source_url: url,
+    media: { title, thumbnail: coverUrl },
+    creator: { name: json.data.author?.nickname, handle: json.data.author?.unique_id, avatar: json.data.author?.avatar },
+    primary_actions: {
+      high_quality: downloads[0],
+      normal_quality: downloads[0],
+      audio_mp3: downloads.find(d => d.type === "audio") || null,
+      thumbnail_hd: thumbOption
+    },
+    downloads,
+    videos: downloads
   };
 };
 
@@ -1266,8 +1326,11 @@ export const fetchVideoDetails = async (url) => {
         expiresAt: Date.now() + INFO_CACHE_TTL_MS
       });
     } catch (err) {
+      console.warn("[videoService] runYtDlp failed, executing platform fallbacks:", err.message);
+      if (normalized.includes("tiktok.com")) {
+        return await fetchTikTokFallback(normalized);
+      }
       if (normalized.includes("youtube.com") || normalized.includes("youtu.be")) {
-        console.warn("[videoService] runYtDlp YouTube failed, executing OEmbed fallback:", err.message);
         return await fetchYouTubeFallback(normalized);
       }
       throw err;

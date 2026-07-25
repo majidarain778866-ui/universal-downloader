@@ -10,7 +10,7 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  const { id } = req.query || {};
+  const { id, preview } = req.query || {};
   if (!id) {
     return res.status(400).json({ error: "A valid cached download ID is required." });
   }
@@ -20,9 +20,32 @@ export default async function handler(req, res) {
     return res.status(404).json({ error: "This download link expired. Fetch the video again." });
   }
 
-  if (cached.url) {
-    return res.redirect(302, cached.url);
+  const targetUrl = cached.url || cached.sourceUrl;
+  if (!targetUrl) {
+    return res.status(400).json({ error: "Invalid download link." });
   }
 
-  return res.status(400).json({ error: "Invalid download link format." });
+  if (preview === "1") {
+    return res.redirect(302, targetUrl);
+  }
+
+  try {
+    const upstream = await fetch(targetUrl, {
+      headers: cached.headers || {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+      }
+    });
+
+    if (upstream.ok && upstream.body) {
+      const contentType = upstream.headers.get("content-type") || "application/octet-stream";
+      res.setHeader("Content-Type", contentType);
+      res.setHeader("Content-Disposition", `attachment; filename="${cached.filename || "download.mp4"}"`);
+      const arrayBuffer = await upstream.arrayBuffer();
+      return res.send(Buffer.from(arrayBuffer));
+    }
+  } catch (err) {
+    console.error("[Vercel Proxy Error]", err);
+  }
+
+  return res.redirect(302, targetUrl);
 }
