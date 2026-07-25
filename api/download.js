@@ -1,12 +1,3 @@
-/**
- * api/download.js — Vercel Serverless Download Handler
- *
- * Strategy: NO streaming/proxying (Vercel Hobby 4.5MB limit kills large video files).
- * Instead: decrypt token → 302 redirect to CDN URL directly.
- *
- * For images (small): buffer + send with Content-Disposition attachment.
- * For videos/audio: 302 redirect to CDN (browser downloads from CDN directly).
- */
 import { getCachedDownload } from "../services/videoService.js";
 
 export default async function handler(req, res) {
@@ -17,16 +8,17 @@ export default async function handler(req, res) {
 
   if (req.method === "OPTIONS") return res.status(200).end();
 
-  const { id, preview } = req.query || {};
+  const { id } = req.query || {};
 
   if (!id) {
     return res.status(400).json({ error: "Missing download ID." });
   }
 
-  let cached;
+  let cached = null;
   try {
     cached = getCachedDownload(id);
-  } catch {
+  } catch (err) {
+    console.error("[Download] Decryption failed:", err?.message);
     cached = null;
   }
 
@@ -40,39 +32,6 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "No direct media URL found. Please re-fetch the video." });
   }
 
-  const filename = (cached.filename || `getintodevice-download.${cached.ext || "mp4"}`).replace(/"/g, "'");
-  const isImage = cached.type === "image" || ["jpg", "jpeg", "png", "webp"].includes(cached.ext);
-
-  // Preview mode → direct redirect, no Content-Disposition
-  if (preview === "1") {
-    return res.redirect(302, targetUrl);
-  }
-
-  // For images: try to proxy (small file, safe under 4.5MB limit)
-  if (isImage) {
-    try {
-      const upstream = await fetch(targetUrl, {
-        headers: {
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36",
-          "Referer": "https://www.google.com/"
-        },
-        signal: AbortSignal.timeout(10000)
-      });
-      if (upstream.ok) {
-        const contentType = upstream.headers.get("content-type") || "image/jpeg";
-        const buf = Buffer.from(await upstream.arrayBuffer());
-        res.setHeader("Content-Type", contentType);
-        res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
-        res.setHeader("Content-Length", buf.length);
-        return res.send(buf);
-      }
-    } catch {
-      // fall through to redirect
-    }
-  }
-
-  // For videos & audio (and image fallback): redirect to CDN directly.
-  // Browser will download when CDN sends Content-Disposition, or open player (user can Save).
-  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  // 302 redirect directly to media CDN URL
   return res.redirect(302, targetUrl);
 }

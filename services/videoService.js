@@ -42,14 +42,13 @@ if (bundledPythonPath) {
 export let pythonCmd = "python3";
 export let ytDlpArgs = ["-m", "yt_dlp"];
 
+const isServerless = Boolean(process.env.NETLIFY || process.env.VERCEL || process.env.NOW_BUILDER || process.env.VERCEL_ENV || process.env.LAMBDA_TASK_ROOT);
 let hasPythonYtDlp = false;
-const isNetlify = Boolean(process.env.NETLIFY || process.env.LAMBDA_TASK_ROOT);
-const isVercel = Boolean(process.env.VERCEL || process.env.NOW_BUILDER || process.env.VERCEL_ENV);
 
 // Respect explicit PYTHON env var (set in Dockerfile)
 const envPython = process.env.PYTHON;
 
-if (!isNetlify) {
+if (!isServerless) {
   // Try explicit PYTHON env var first
   if (envPython) {
     try {
@@ -97,17 +96,8 @@ if (!hasPythonYtDlp) {
     ytDlpArgs = [];
     hasPythonYtDlp = true;
   } else {
-    // Last resort: try system yt-dlp binary
-    try {
-      execSync("yt-dlp --version", { stdio: "ignore" });
-      pythonCmd = "yt-dlp";
-      ytDlpArgs = [];
-      hasPythonYtDlp = true;
-    } catch {
-      // fallback to python3
-      pythonCmd = envPython || "python3";
-      ytDlpArgs = ["-m", "yt_dlp"];
-    }
+    pythonCmd = envPython || "yt-dlp";
+    ytDlpArgs = [];
   }
 }
 
@@ -116,14 +106,27 @@ console.log(`[videoService] Using: ${pythonCmd} ${ytDlpArgs.join(" ")}`);
 const ALGORITHM = "aes-256-cbc";
 const SECRET_KEY = scryptSync(process.env.DOWNLOAD_SECRET || "social-downloader-secure-key-2026", "salt-123", 32);
 
+const base64urlToBase64 = (str) => {
+  let base64 = str.replace(/-/g, "+").replace(/_/g, "/");
+  while (base64.length % 4) {
+    base64 += "=";
+  }
+  return base64;
+};
+
+const base64ToBase64url = (str) => {
+  return str.replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
+};
+
 export const encryptData = (data) => {
   try {
     const iv = randomBytes(16);
     const cipher = createCipheriv(ALGORITHM, SECRET_KEY, iv);
     let encrypted = cipher.update(JSON.stringify(data), "utf8", "base64");
     encrypted += cipher.final("base64");
-    const token = iv.toString("base64url") + "." + Buffer.from(encrypted, "base64").toString("base64url");
-    return token;
+    const ivStr = base64ToBase64url(iv.toString("base64"));
+    const encStr = base64ToBase64url(encrypted);
+    return `${ivStr}.${encStr}`;
   } catch (e) {
     console.error("Encryption error:", e);
     return null;
@@ -134,8 +137,8 @@ export const decryptData = (token) => {
   try {
     const parts = token.split(".");
     if (parts.length !== 2) return null;
-    const iv = Buffer.from(parts[0], "base64url");
-    const encrypted = Buffer.from(parts[1], "base64url");
+    const iv = Buffer.from(base64urlToBase64(parts[0]), "base64");
+    const encrypted = Buffer.from(base64urlToBase64(parts[1]), "base64");
     const decipher = createDecipheriv(ALGORITHM, SECRET_KEY, iv);
     let decrypted = decipher.update(encrypted, undefined, "utf8");
     decrypted += decipher.final("utf8");
