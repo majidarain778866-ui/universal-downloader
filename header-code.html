@@ -1,0 +1,238 @@
+<!-- 
+=========================================================
+  ULTIMATE NETLIFY STICKY GLASS HEADER (STANDALONE)
+  Paste this into a "Custom HTML" block in WordPress, 
+  Kadence Header HTML item, or Elementor HTML widget.
+=========================================================
+-->
+
+<!-- 1. FONTS & ICONS -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- 2. SCOPED HEADER STYLES -->
+<style>
+  /* Header Container */
+  .net-ultra-header {
+    position: sticky;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 99999;
+    background: rgba(15, 23, 42, 0.88) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+    box-sizing: border-box !important;
+  }
+
+  .net-hdr-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    box-sizing: border-box;
+  }
+
+  /* Logo */
+  .net-hdr-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none !important;
+  }
+
+  .net-hdr-brand-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 1.2rem;
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
+    transition: transform 0.3s ease;
+  }
+
+  .net-hdr-brand:hover .net-hdr-brand-icon {
+    transform: scale(1.05) rotate(-5deg);
+  }
+
+  .net-hdr-brand-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    background: linear-gradient(to right, #ffffff, #cbd5e1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+  }
+
+  /* Nav Links */
+  .net-hdr-menu {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .net-hdr-menu li {
+    margin: 0 !important;
+    padding: 0 !important;
+    list-style: none !important;
+  }
+
+  .net-hdr-menu a {
+    color: #94a3b8 !important;
+    text-decoration: none !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    transition: all 0.2s ease !important;
+    padding: 6px 0;
+    position: relative;
+  }
+
+  .net-hdr-menu a:hover {
+    color: #ffffff !important;
+  }
+
+  .net-hdr-menu a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0%;
+    height: 2px;
+    background: linear-gradient(to right, #6366f1, #a855f7);
+    transition: width 0.3s ease;
+    border-radius: 2px;
+  }
+
+  .net-hdr-menu a:hover::after {
+    width: 100%;
+  }
+
+  /* Actions & Button */
+  .net-hdr-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .net-hdr-cta {
+    background: linear-gradient(135deg, #6366f1, #a855f7) !important;
+    color: #ffffff !important;
+    padding: 10px 22px !important;
+    border-radius: 12px !important;
+    font-weight: 700 !important;
+    font-size: 0.9rem !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35) !important;
+    transition: all 0.3s ease !important;
+    border: none !important;
+  }
+
+  .net-hdr-cta:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(168, 85, 247, 0.55) !important;
+  }
+
+  /* Mobile Toggle */
+  .net-hdr-hamburger {
+    display: none;
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 4px;
+  }
+
+  /* Responsive Mobile Menu */
+  @media (max-width: 768px) {
+    .net-hdr-menu {
+      display: none !important;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background: rgba(15, 23, 42, 0.98) !important;
+      flex-direction: column !important;
+      padding: 24px !important;
+      gap: 18px !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6) !important;
+      box-sizing: border-box !important;
+    }
+    .net-hdr-menu.active {
+      display: flex !important;
+    }
+    .net-hdr-hamburger {
+      display: block !important;
+    }
+  }
+</style>
+
+<!-- 3. HEADER HTML STRUCTURE -->
+<header class="net-ultra-header">
+  <div class="net-hdr-inner">
+    
+    <!-- BRAND LOGO -->
+    <a href="#" class="net-hdr-brand">
+      <div class="net-hdr-brand-icon">
+        <i class="fa-solid fa-cloud-arrow-down"></i>
+      </div>
+      <span class="net-hdr-brand-title">GetIntoDevices</span>
+    </a>
+
+    <!-- NAVIGATION MENU -->
+    <ul class="net-hdr-menu" id="net-hdr-menu">
+      <li><a href="#downloader">Downloader</a></li>
+      <li><a href="#supported">Supported Platforms</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#api">API Docs</a></li>
+    </ul>
+
+    <!-- ACTION BUTTON & MOBILE TOGGLE -->
+    <div class="net-hdr-right">
+      <a href="#downloader" class="net-hdr-cta">
+        <i class="fa-solid fa-bolt"></i> Download App
+      </a>
+      <button class="net-hdr-hamburger" id="net-hdr-hamburger" aria-label="Toggle Navigation">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+    </div>
+
+  </div>
+</header>
+
+<!-- 4. JAVASCRIPT LOGIC -->
+<script>
+(function() {
+  const initHeader = () => {
+    const btn = document.getElementById('net-hdr-hamburger');
+    const menu = document.getElementById('net-hdr-menu');
+    if (btn && menu) {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        menu.classList.toggle('active');
+      });
+    }
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initHeader);
+  } else {
+    initHeader();
+  }
+})();
+</script>

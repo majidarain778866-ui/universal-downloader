@@ -1,0 +1,2684 @@
+<!-- 
+===================================================================
+  SOCIAL DOWNLOADER PRO - WORDPRESS EMBED WIDGET
+  ===================================================================
+  Paste this entire code into a "Custom HTML" block in 
+  Gutenberg, Elementor, Divi, or your WordPress Custom Page Template.
+===================================================================
+-->
+
+<!-- 1. FONTS & ICONS (OPTIMIZED WITH DISPLAY=SWAP FOR FAST LOADING) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet" />
+
+<!-- 2. STYLES (PREMIUM CREATOR MEDIA WORKSPACE GLASSMORPHISM DESIGN) -->
+<style>
+  .sdp-root {
+    --bg-space: #070412;
+    --bg-card: rgba(15, 11, 35, 0.65);
+    --bg-card-hover: rgba(24, 18, 56, 0.75);
+    --border-glass: rgba(255, 255, 255, 0.12);
+    --border-glass-glow: rgba(168, 85, 247, 0.35);
+    --accent: #8b5cf6;
+    --accent-hot: #d946ef;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --theme-button: linear-gradient(135deg, #a855f7, #6366f1);
+    --theme-cta: linear-gradient(135deg, #ec4899, #f43f5e);
+    --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    
+    font-family: var(--font-body) !important;
+    color-scheme: dark !important;
+    color: var(--text-primary) !important;
+    background: radial-gradient(circle at 15% -10%, rgba(139, 92, 246, 0.25) 0%, transparent 55%),
+                radial-gradient(circle at 85% 45%, rgba(217, 70, 239, 0.2) 0%, transparent 55%),
+                var(--bg-space) !important;
+    border-radius: 32px !important;
+    padding: 40px 36px !important;
+    margin: 30px auto !important;
+    max-width: 1140px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    position: relative !important;
+    overflow: hidden !important;
+    box-shadow: 0 35px 100px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+    border: 1px solid var(--border-glass) !important;
+  }
+
+  .sdp-root * {
+    box-sizing: border-box !important;
+    line-height: 1.5 !important;
+  }
+
+  .sdp-glass {
+    background: var(--bg-card) !important;
+    backdrop-filter: blur(24px) saturate(1.8) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(1.8) !important;
+    border: 1px solid var(--border-glass) !important;
+    border-top-color: rgba(255, 255, 255, 0.16) !important;
+    border-left-color: rgba(255, 255, 255, 0.16) !important;
+    border-radius: 24px !important;
+    padding: 28px 32px !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35) !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .sdp-glass:hover {
+    background: var(--bg-card-hover) !important;
+    border-color: var(--border-glass-glow) !important;
+  }
+
+  .sdp-header {
+    text-align: center !important;
+    margin-bottom: 24px !important;
+  }
+
+  .sdp-eyebrow {
+    display: inline-block !important;
+    margin-bottom: 8px !important;
+    color: #c084fc !important;
+    font-family: var(--font-heading) !important;
+    font-size: 0.85rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+  }
+
+  .sdp-header h2 {
+    font-family: var(--font-heading) !important;
+    font-size: clamp(1.6rem, 5vw, 2.5rem) !important;
+    font-weight: 800 !important;
+    line-height: 1.25 !important;
+    margin: 0 0 10px 0 !important;
+    background: linear-gradient(135deg, #ffffff, #c084fc, #60a5fa) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    word-break: normal !important;
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
+  }
+
+  .sdp-header p {
+    color: var(--text-secondary) !important;
+    font-size: 1.05rem !important;
+    margin: 0 !important;
+  }
+
+  .sdp-form-panel {
+    margin-bottom: 24px !important;
+  }
+
+  .sdp-form {
+    display: flex !important;
+    gap: 14px !important;
+    width: 100% !important;
+  }
+
+  @media (max-width: 600px) {
+    .sdp-form { flex-direction: column !important; }
+  }
+
+  .sdp-input-wrapper {
+    position: relative !important;
+    flex: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  .sdp-input {
+    width: 100% !important;
+    height: 58px !important;
+    padding: 0 20px 0 50px !important;
+    border-radius: 16px !important;
+    border: 1px solid var(--border-glass) !important;
+    background: rgba(5, 3, 14, 0.7) !important;
+    color: var(--text-primary) !important;
+    outline: none !important;
+    font-size: 1.05rem !important;
+    transition: all 0.3s ease !important;
+    margin: 0 !important;
+  }
+
+  .sdp-input:focus {
+    border-color: var(--accent) !important;
+    background: rgba(5, 3, 14, 0.9) !important;
+    box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.25) !important;
+  }
+
+  .sdp-search-icon {
+    position: absolute !important;
+    left: 16px !important;
+    color: var(--text-muted) !important;
+    font-size: 1.4rem !important;
+    pointer-events: none !important;
+  }
+
+  .sdp-btn {
+    height: 58px !important;
+    padding: 0 36px !important;
+    border-radius: 16px !important;
+    background: var(--theme-button) !important;
+    color: #ffffff !important;
+    border: none !important;
+    cursor: pointer !important;
+    font-family: var(--font-heading) !important;
+    font-weight: 700 !important;
+    font-size: 1.1rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    box-shadow: 0 8px 25px rgba(168, 85, 247, 0.4) !important;
+    transition: all 0.3s ease !important;
+    white-space: nowrap !important;
+  }
+
+  .sdp-btn:hover:not(:disabled) {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 12px 32px rgba(217, 70, 239, 0.55) !important;
+    filter: brightness(1.1) !important;
+  }
+
+  .sdp-btn:disabled {
+    opacity: 0.65 !important;
+    cursor: not-allowed !important;
+  }
+
+  .sdp-error {
+    display: none;
+    background: rgba(239, 68, 68, 0.15) !important;
+    border: 1px solid rgba(239, 68, 68, 0.4) !important;
+    color: #f87171 !important;
+    padding: 14px 18px !important;
+    border-radius: 14px !important;
+    margin-bottom: 20px !important;
+    text-align: center !important;
+    font-weight: 600 !important;
+    font-size: 0.95rem !important;
+  }
+
+  /* Loader */
+  .sdp-loader {
+    display: none;
+    padding: 24px !important;
+    margin-bottom: 24px !important;
+    text-align: center !important;
+  }
+
+  .sdp-spinner {
+    width: 50px !important;
+    height: 50px !important;
+    border: 4px solid rgba(255, 255, 255, 0.1) !important;
+    border-top-color: var(--accent-hot) !important;
+    border-right-color: var(--accent) !important;
+    border-radius: 50% !important;
+    animation: sdp-spin 1s linear infinite !important;
+    margin: 0 auto 15px auto !important;
+  }
+
+  @keyframes sdp-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .sdp-loader p {
+    color: var(--text-secondary) !important;
+    font-size: 1.05rem !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+  }
+
+  /* Result Console */
+  .sdp-result {
+    display: none;
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+    animation: sdp-fade-in 0.4s ease-out forwards !important;
+  }
+
+  @keyframes sdp-fade-in {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Media Preview Card */
+  .sdp-media-info {
+    display: grid !important;
+    grid-template-columns: 180px 1fr !important;
+    gap: 20px !important;
+    align-items: center !important;
+    padding: 20px !important;
+  }
+
+  @media (max-width: 600px) {
+    .sdp-media-info {
+      grid-template-columns: 1fr !important;
+      text-align: center !important;
+      justify-items: center !important;
+    }
+  }
+
+  .sdp-thumbnail-box {
+    width: 100% !important;
+    max-width: 180px !important;
+    height: 120px !important;
+    border-radius: 14px !important;
+    overflow: hidden !important;
+    border: 1px solid var(--border-glass) !important;
+    background: #000 !important;
+  }
+
+  .sdp-thumbnail {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+  }
+
+  .sdp-details h3 {
+    margin: 0 0 8px 0 !important;
+    font-family: var(--font-heading) !important;
+    font-size: 1.35rem !important;
+    font-weight: 700 !important;
+    line-height: 1.3 !important;
+    color: #ffffff !important;
+    word-break: break-word !important;
+  }
+
+  .sdp-details p {
+    color: var(--text-secondary) !important;
+    font-size: 0.95rem !important;
+    margin: 0 !important;
+  }
+
+  /* Primary Action Cards */
+  .sdp-primary-actions {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 14px !important;
+    padding: 20px !important;
+  }
+
+  @media (max-width: 800px) {
+    .sdp-primary-actions { grid-template-columns: repeat(2, 1fr) !important; }
+  }
+
+  @media (max-width: 480px) {
+    .sdp-primary-actions { grid-template-columns: 1fr !important; }
+  }
+
+  .sdp-action-card {
+    min-height: 94px !important;
+    padding: 16px 18px !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    text-decoration: none !important;
+    transition: all 0.3s ease !important;
+    cursor: pointer !important;
+  }
+
+  .sdp-action-card .material-symbols-outlined {
+    font-size: 1.6rem !important;
+    margin-bottom: 4px !important;
+    color: #ffffff !important;
+  }
+
+  .sdp-action-label {
+    font-family: var(--font-heading) !important;
+    font-weight: 800 !important;
+    font-size: 1.05rem !important;
+    color: #ffffff !important;
+  }
+
+  .sdp-action-card small {
+    font-size: 0.8rem !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+    margin-top: 2px !important;
+  }
+
+  .sdp-action-high {
+    background: var(--theme-cta) !important;
+    box-shadow: 0 8px 22px rgba(236, 72, 153, 0.35) !important;
+  }
+
+  .sdp-action-high:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 12px 28px rgba(244, 63, 94, 0.5) !important;
+  }
+
+  .sdp-action-normal {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(139, 92, 246, 0.3)) !important;
+  }
+
+  .sdp-action-normal:hover {
+    transform: translateY(-3px) !important;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(139, 92, 246, 0.45)) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+  }
+
+  .sdp-action-audio {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(139, 92, 246, 0.25)) !important;
+  }
+
+  .sdp-action-audio:hover {
+    transform: translateY(-3px) !important;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(139, 92, 246, 0.4)) !important;
+    border-color: rgba(16, 185, 129, 0.4) !important;
+  }
+
+  .sdp-action-thumb {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(255, 255, 255, 0.08)) !important;
+  }
+
+  .sdp-action-thumb:hover {
+    transform: translateY(-3px) !important;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(255, 255, 255, 0.14)) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+  }
+
+  /* More Formats Accordion (Same as Netlify) */
+  .sdp-more-formats {
+    padding: 24px !important;
+  }
+
+  .sdp-more-formats summary {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    cursor: pointer !important;
+    outline: none !important;
+    list-style: none !important;
+  }
+
+  .sdp-more-formats summary::-webkit-details-marker {
+    display: none !important;
+  }
+
+  .sdp-summary-right {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  .sdp-chevron {
+    transition: transform 0.3s ease !important;
+    color: var(--text-secondary) !important;
+    font-size: 1.4rem !important;
+  }
+
+  .sdp-more-formats[open] .sdp-chevron {
+    transform: rotate(180deg) !important;
+    color: var(--accent-hot) !important;
+  }
+
+  .sdp-summary-title {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-family: var(--font-heading) !important;
+    font-weight: 800 !important;
+    font-size: 1.15rem !important;
+    color: #ffffff !important;
+  }
+
+  .sdp-summary-title .material-symbols-outlined {
+    color: var(--accent-hot) !important;
+  }
+
+  .sdp-more-formats summary small {
+    color: var(--text-secondary) !important;
+    font-size: 0.85rem !important;
+  }
+
+  /* Output Console Toolbar */
+  .sdp-output-console {
+    margin-top: 20px !important;
+    border-top: 1px solid var(--border-glass) !important;
+    padding-top: 20px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 16px !important;
+    flex-wrap: wrap !important;
+  }
+
+  .sdp-summary-pills, .sdp-filter-chips {
+    display: flex !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+  }
+
+  .sdp-summary-pill {
+    padding: 6px 12px !important;
+    border-radius: 8px !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid var(--border-glass) !important;
+    display: flex !important;
+    gap: 6px !important;
+    font-size: 0.85rem !important;
+    align-items: center !important;
+  }
+
+  .sdp-summary-pill strong {
+    color: var(--accent-hot) !important;
+  }
+
+  .sdp-summary-pill small {
+    color: var(--text-secondary) !important;
+  }
+
+  .sdp-filter-chip {
+    min-height: 36px !important;
+    padding: 0 14px !important;
+    border-radius: 8px !important;
+    border: 1px solid var(--border-glass) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    color: var(--text-secondary) !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+  }
+
+  .sdp-filter-chip.active {
+    background: var(--theme-button) !important;
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3) !important;
+  }
+
+  /* Rich Card Grid */
+  .sdp-options-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+    gap: 14px !important;
+    margin-top: 16px !important;
+  }
+
+  .sdp-option-card {
+    padding: 20px !important;
+    border-radius: 14px !important;
+    border: 1px solid var(--border-glass) !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .sdp-option-card:hover {
+    transform: translateY(-2px) !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+  }
+
+  .sdp-option-best {
+    border-color: rgba(168, 85, 247, 0.5) !important;
+    box-shadow: inset 4px 0 0 var(--accent-hot) !important;
+  }
+
+  .sdp-option-top {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+
+  .sdp-option-title {
+    font-weight: 700 !important;
+    font-size: 0.98rem !important;
+    color: #ffffff !important;
+    font-family: var(--font-heading) !important;
+  }
+
+  .sdp-asset-badge {
+    padding: 3px 8px !important;
+    border-radius: 4px !important;
+    font-size: 0.72rem !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    white-space: nowrap !important;
+  }
+
+  .sdp-asset-video { background: rgba(59, 130, 246, 0.25) !important; color: #60a5fa !important; }
+  .sdp-asset-image { background: rgba(236, 72, 153, 0.25) !important; color: #f472b6 !important; }
+  .sdp-asset-audio { background: rgba(16, 185, 129, 0.25) !important; color: #34d399 !important; }
+
+  .sdp-meta-pills {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  .sdp-pill {
+    padding: 2px 8px !important;
+    border-radius: 6px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid var(--border-glass) !important;
+    font-size: 0.75rem !important;
+    color: var(--text-secondary) !important;
+  }
+
+  .sdp-option-actions {
+    display: flex !important;
+    gap: 8px !important;
+    margin-top: auto !important;
+  }
+
+  .sdp-btn-preview, .sdp-btn-download {
+    flex: 1 !important;
+    min-height: 38px !important;
+    border-radius: 8px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    font-family: var(--font-heading) !important;
+  }
+
+  .sdp-btn-preview {
+    border: 1px solid var(--border-glass) !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: #ffffff !important;
+  }
+
+  .sdp-btn-preview:hover {
+    background: rgba(255, 255, 255, 0.14) !important;
+  }
+
+  .sdp-btn-download {
+    background: var(--theme-button) !important;
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.35) !important;
+  }
+
+  .sdp-btn-download:hover {
+    opacity: 0.95 !important;
+    box-shadow: 0 6px 20px rgba(217, 70, 239, 0.45) !important;
+  }
+
+  /* Comprehensive Mobile & Tablet Responsiveness */
+  @media (max-width: 768px) {
+    .sdp-root {
+      padding: 24px 16px !important;
+      border-radius: 24px !important;
+      margin: 15px auto !important;
+    }
+
+    .sdp-glass {
+      padding: 20px 16px !important;
+      border-radius: 18px !important;
+    }
+
+    .sdp-header h2 {
+      font-size: 1.8rem !important;
+      line-height: 1.25 !important;
+    }
+
+    .sdp-media-info {
+      grid-template-columns: 1fr !important;
+      text-align: center !important;
+      justify-items: center !important;
+      gap: 16px !important;
+      padding: 16px !important;
+    }
+
+    .sdp-thumbnail-box {
+      max-width: 260px !important;
+      height: 140px !important;
+    }
+
+    .sdp-primary-actions {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 10px !important;
+      padding: 16px !important;
+    }
+
+    .sdp-more-formats summary {
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 8px !important;
+    }
+
+    .sdp-summary-right {
+      width: 100% !important;
+      justify-content: space-between !important;
+    }
+
+    .sdp-output-console {
+      flex-direction: column !important;
+      align-items: stretch !important;
+    }
+
+    .sdp-filter-chips {
+      width: 100% !important;
+      justify-content: space-between !important;
+    }
+
+    .sdp-filter-chip {
+      flex: 1 !important;
+      text-align: center !important;
+      padding: 0 6px !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .sdp-root {
+      padding: 14px 10px !important;
+      border-radius: 18px !important;
+    }
+
+    .sdp-glass {
+      padding: 14px 12px !important;
+      border-radius: 14px !important;
+    }
+
+    .sdp-header {
+      margin-bottom: 16px !important;
+    }
+
+    .sdp-header h2 {
+      font-size: 1.45rem !important;
+      letter-spacing: -0.02em !important;
+    }
+
+    .sdp-header p {
+      font-size: 0.88rem !important;
+    }
+
+    .sdp-form {
+      gap: 10px !important;
+    }
+
+    .sdp-input {
+      height: 50px !important;
+      font-size: 0.92rem !important;
+      padding: 0 12px 0 42px !important;
+      border-radius: 12px !important;
+    }
+
+    .sdp-search-icon {
+      left: 12px !important;
+      font-size: 1.2rem !important;
+    }
+
+    .sdp-btn {
+      height: 50px !important;
+      width: 100% !important;
+      font-size: 0.98rem !important;
+      border-radius: 12px !important;
+    }
+
+    .sdp-primary-actions {
+      grid-template-columns: 1fr !important;
+      padding: 12px !important;
+    }
+
+    .sdp-options-grid {
+      grid-template-columns: 1fr !important;
+    }
+
+    .sdp-summary-title {
+      font-size: 0.98rem !important;
+      white-space: nowrap !important;
+    }
+
+    .sdp-more-formats summary small {
+      font-size: 0.78rem !important;
+    }
+  }
+
+  /* QUICK TUTORIAL SECTION STYLES */
+  .sdp-tutorial-root {
+    margin: 32px auto 0 auto !important;
+    max-width: 1140px !important;
+    width: 100% !important;
+  }
+
+  .sdp-tutorial-header {
+    margin-bottom: 28px !important;
+  }
+
+  .sdp-tutorial-eyebrow {
+    display: inline-block !important;
+    margin-bottom: 6px !important;
+    color: #c084fc !important;
+    font-family: var(--font-heading) !important;
+    font-size: 0.85rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+  }
+
+  .sdp-tutorial-header h3 {
+    font-family: var(--font-heading) !important;
+    font-size: clamp(1.6rem, 4.5vw, 2.2rem) !important;
+    font-weight: 800 !important;
+    line-height: 1.25 !important;
+    margin: 0 !important;
+    color: #ffffff !important;
+  }
+
+  .sdp-tutorial-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 20px !important;
+  }
+
+  .sdp-tutorial-card {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid var(--border-glass) !important;
+    border-radius: 20px !important;
+    padding: 28px 24px !important;
+    position: relative !important;
+    overflow: hidden !important;
+    transition: all 0.3s ease !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .sdp-tutorial-card:hover {
+    transform: translateY(-4px) !important;
+    background: var(--bg-card-hover) !important;
+    border-color: var(--border-glass-glow) !important;
+    box-shadow: 0 15px 35px rgba(139, 92, 246, 0.2) !important;
+  }
+
+  .sdp-tutorial-top {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    margin-bottom: 20px !important;
+  }
+
+  .sdp-tutorial-icon-box {
+    width: 50px !important;
+    height: 50px !important;
+    border-radius: 16px !important;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(99, 102, 241, 0.2)) !important;
+    border: 1px solid rgba(168, 85, 247, 0.35) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #c084fc !important;
+  }
+
+  .sdp-tutorial-icon-box .material-symbols-outlined {
+    font-size: 1.5rem !important;
+  }
+
+  .sdp-tutorial-number {
+    font-family: var(--font-heading) !important;
+    font-size: 2.2rem !important;
+    font-weight: 900 !important;
+    color: rgba(255, 255, 255, 0.12) !important;
+    letter-spacing: -0.04em !important;
+  }
+
+  .sdp-tutorial-card h4 {
+    font-family: var(--font-heading) !important;
+    font-size: 1.25rem !important;
+    font-weight: 700 !important;
+    margin: 0 0 10px 0 !important;
+    color: #ffffff !important;
+  }
+
+  .sdp-tutorial-card p {
+    font-size: 0.92rem !important;
+    color: var(--text-secondary) !important;
+    margin: 0 !important;
+    line-height: 1.6 !important;
+  }
+
+  @media (max-width: 900px) {
+    .sdp-tutorial-grid {
+      grid-template-columns: 1fr !important;
+      gap: 16px !important;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .sdp-tutorial-card {
+      padding: 20px 16px !important;
+      border-radius: 16px !important;
+    }
+  }
+</style>
+
+<!-- 3. HTML STRUCTURE -->
+<div class="sdp-root">
+  <!-- Header -->
+  <div class="sdp-header sdp-glass">
+    <span class="sdp-eyebrow">CREATOR MEDIA WORKSPACE</span>
+    <h2>Premium Downloader</h2>
+    <p>Download HD videos &amp; audio from any social platform.</p>
+  </div>
+
+  <div class="sdp-error" id="sdp-error"></div>
+
+  <!-- Form Panel -->
+  <div class="sdp-form-panel sdp-glass">
+    <form class="sdp-form" id="sdp-form" action="javascript:void(0);" method="POST">
+      <div class="sdp-input-wrapper">
+        <span class="material-symbols-outlined sdp-search-icon">search</span>
+        <input type="url" id="sdp-url" class="sdp-input" placeholder="Paste video link here..." required="" autocomplete="off">
+      </div>
+      <button type="submit" class="sdp-btn" id="sdp-submit-btn">
+        <span class="material-symbols-outlined">analytics</span>
+        <span>Fetch Video</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- Loader -->
+  <div class="sdp-loader sdp-glass" id="sdp-loader">
+    <div class="sdp-spinner"></div>
+    <p>Fetching highest quality streams...</p>
+  </div>
+
+  <!-- Results Area -->
+  <div class="sdp-result" id="sdp-result">
+    <!-- Media Preview Card -->
+    <div class="sdp-media-info sdp-glass">
+      <div class="sdp-thumbnail-box">
+        <img src="" alt="Thumbnail" class="sdp-thumbnail" id="sdp-thumb" loading="lazy" decoding="async">
+      </div>
+      <div class="sdp-details">
+        <h3 id="sdp-title">Video Title</h3>
+        <p id="sdp-meta">Choose your preferred format below.</p>
+      </div>
+    </div>
+
+    <!-- 4 Featured Quick Action Cards -->
+    <div class="sdp-primary-actions sdp-glass">
+      <a id="sdp-high-download" class="sdp-action-card sdp-action-high" href="#" target="_blank" rel="noreferrer">
+        <span class="material-symbols-outlined">hd</span>
+        <span class="sdp-action-label">High Quality</span>
+        <small id="sdp-high-meta">Best video</small>
+      </a>
+      <a id="sdp-normal-download" class="sdp-action-card sdp-action-normal" href="#" target="_blank" rel="noreferrer">
+        <span class="material-symbols-outlined">video_file</span>
+        <span class="sdp-action-label">Normal Quality</span>
+        <small id="sdp-normal-meta">Smaller video</small>
+      </a>
+      <a id="sdp-audio-download" class="sdp-action-card sdp-action-audio" href="#" target="_blank" rel="noreferrer">
+        <span class="material-symbols-outlined">audiotrack</span>
+        <span class="sdp-action-label">Audio MP3</span>
+        <small id="sdp-audio-meta">Download MP3</small>
+      </a>
+      <a id="sdp-thumb-download" class="sdp-action-card sdp-action-thumb" href="#" target="_blank" rel="noreferrer">
+        <span class="material-symbols-outlined">image</span>
+        <span class="sdp-action-label">Thumbnail HD</span>
+        <small id="sdp-thumb-meta">Preview image</small>
+      </a>
+    </div>
+
+    <!-- More Formats Accordion Dropdown (Closed by default) -->
+    <details class="sdp-more-formats sdp-glass" id="sdp-accordion">
+      <summary>
+        <div class="sdp-summary-title">
+          <span class="material-symbols-outlined">tune</span>
+          <span>More formats</span>
+        </div>
+        <div class="sdp-summary-right">
+          <small>Advanced video, audio, and image options</small>
+          <span class="material-symbols-outlined sdp-chevron">expand_more</span>
+        </div>
+      </summary>
+
+      <div class="sdp-output-console">
+        <div id="sdp-summary-pills" class="sdp-summary-pills"></div>
+        <div class="sdp-filter-chips">
+          <button class="sdp-filter-chip active" type="button" data-filter="all">All</button>
+          <button class="sdp-filter-chip" type="button" data-filter="video">Video</button>
+          <button class="sdp-filter-chip" type="button" data-filter="audio">Audio</button>
+          <button class="sdp-filter-chip" type="button" data-filter="image">Images</button>
+        </div>
+      </div>
+
+      <div id="sdp-formats-container" class="sdp-options-grid">
+        <!-- Option cards injected here by JS -->
+      </div>
+    </details>
+  </div>
+</div>
+
+<!-- QUICK TUTORIAL SECTION (HOW TO USE THE TOOL) -->
+<div class="sdp-tutorial-root sdp-glass">
+  <div class="sdp-tutorial-header">
+    <span class="sdp-tutorial-eyebrow">QUICK TUTORIAL</span>
+    <h3>How to use the tool</h3>
+  </div>
+
+  <div class="sdp-tutorial-grid">
+    <!-- Step 01 -->
+    <div class="sdp-tutorial-card">
+      <div class="sdp-tutorial-top">
+        <div class="sdp-tutorial-icon-box">
+          <span class="material-symbols-outlined">content_copy</span>
+        </div>
+        <span class="sdp-tutorial-number">01</span>
+      </div>
+      <h4>Copy public link</h4>
+      <p>Find the public shareable video link on platforms like TikTok, Instagram, YouTube, or Pinterest.</p>
+    </div>
+
+    <!-- Step 02 -->
+    <div class="sdp-tutorial-card">
+      <div class="sdp-tutorial-top">
+        <div class="sdp-tutorial-icon-box">
+          <span class="material-symbols-outlined">link</span>
+        </div>
+        <span class="sdp-tutorial-number">02</span>
+      </div>
+      <h4>Paste &amp; analyze link</h4>
+      <p>Paste the social media link in the input box above and click the Fetch Video button to parse creator assets.</p>
+    </div>
+
+    <!-- Step 03 -->
+    <div class="sdp-tutorial-card">
+      <div class="sdp-tutorial-top">
+        <div class="sdp-tutorial-icon-box">
+          <span class="material-symbols-outlined">download</span>
+        </div>
+        <span class="sdp-tutorial-number">03</span>
+      </div>
+      <h4>Free HD download</h4>
+      <p>Select your preferred format (HD Video, Audio, or Thumbnails) and download instantly.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 3. KEYWORD-FOCUSED TOOLS SECTION (NETLIFY MATCHED THEME FOR WORDPRESS) -->
+<style>
+  .sdp-keyword-section {
+    margin-top: 30px !important;
+    padding: 40px 32px !important;
+    width: 100% !important;
+  }
+
+  .sdp-keyword-header {
+    text-align: center !important;
+    margin-bottom: 32px !important;
+    width: 100% !important;
+  }
+
+  .sdp-keyword-eyebrow {
+    color: #d946ef !important;
+    font-family: var(--font-heading) !important;
+    font-size: 0.82rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
+    margin-bottom: 8px !important;
+    display: block !important;
+  }
+
+  .sdp-keyword-title {
+    font-family: var(--font-heading) !important;
+    font-size: clamp(1.8rem, 4vw, 2.6rem) !important;
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    margin: 0 0 10px 0 !important;
+    line-height: 1.2 !important;
+  }
+
+  .sdp-keyword-subtitle {
+    color: var(--text-secondary) !important;
+    font-size: 0.98rem !important;
+    line-height: 1.5 !important;
+    max-width: 660px !important;
+    margin: 0 auto !important;
+  }
+
+  .sdp-keyword-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+
+  .sdp-keyword-card {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 14px 16px !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid var(--border-glass) !important;
+    border-radius: 14px !important;
+    transition: all 0.25s ease !important;
+    user-select: none !important;
+    cursor: default !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .sdp-keyword-card:hover {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: var(--accent-color, rgba(168, 85, 247, 0.4)) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.4), 0 0 16px -4px var(--accent-color, rgba(168, 85, 247, 0.3)) !important;
+  }
+
+  .sdp-keyword-icon {
+    font-family: 'Material Symbols Outlined' !important;
+    font-weight: normal !important;
+    font-style: normal !important;
+    font-size: 1.35rem !important;
+    line-height: 1 !important;
+    letter-spacing: normal !important;
+    text-transform: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+    word-wrap: normal !important;
+    direction: ltr !important;
+    -webkit-font-smoothing: antialiased !important;
+    text-rendering: optimizeLegibility !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    font-feature-settings: 'liga' !important;
+    width: 1.35rem !important;
+    height: 1.35rem !important;
+    overflow: hidden !important;
+    flex-shrink: 0 !important;
+    transition: transform 0.25s ease !important;
+  }
+
+  .sdp-keyword-card:hover .sdp-keyword-icon {
+    transform: scale(1.1) !important;
+  }
+
+  .sdp-keyword-card-title {
+    font-weight: 600 !important;
+    font-size: 0.88rem !important;
+    line-height: 1.35 !important;
+    color: #f1f5f9 !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    word-wrap: normal !important;
+    white-space: normal !important;
+    hyphens: none !important;
+    -webkit-hyphens: none !important;
+    min-width: 0 !important;
+  }
+
+  @media (max-width: 1100px) {
+    .sdp-keyword-grid { grid-template-columns: repeat(3, 1fr) !important; }
+  }
+
+  @media (max-width: 768px) {
+    .sdp-keyword-section { padding: 24px 16px !important; }
+    .sdp-keyword-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+    .sdp-keyword-card { padding: 12px 14px !important; }
+    .sdp-keyword-card-title { font-size: 0.82rem !important; }
+  }
+
+  @media (max-width: 480px) {
+    .sdp-keyword-grid { grid-template-columns: 1fr !important; }
+  }
+</style>
+
+<div class="sdp-keyword-section sdp-glass">
+  <div class="sdp-keyword-header">
+    <span class="sdp-keyword-eyebrow">KEYWORD-FOCUSED TOOLS</span>
+    <h2 class="sdp-keyword-title">Social Downloader</h2>
+    <p class="sdp-keyword-subtitle">
+      Analyze public social media links, preview media, and download HD videos, thumbnails, and creator metadata from one clean workspace.
+    </p>
+  </div>
+
+  <div class="sdp-keyword-grid">
+    <div class="sdp-keyword-card" style="--accent-color: #ff0000;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #ff0000;">play_circle</span>
+      <span class="sdp-keyword-card-title">YouTube Shorts Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #00f2fe;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #00f2fe;">video_library</span>
+      <span class="sdp-keyword-card-title">TikTok Video Downloader No Watermark</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #fe0979;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #fe0979;">audiotrack</span>
+      <span class="sdp-keyword-card-title">TikTok Audio Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #e1306c;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #e1306c;">video_settings</span>
+      <span class="sdp-keyword-card-title">Instagram Video Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #833ab4;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #833ab4;">camera_roll</span>
+      <span class="sdp-keyword-card-title">Instagram Reels Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #f77737;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #f77737;">history_toggle_off</span>
+      <span class="sdp-keyword-card-title">Instagram Story Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #e1306c;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #e1306c;">photo_library</span>
+      <span class="sdp-keyword-card-title">Instagram Photo Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #c13584;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #c13584;">library_music</span>
+      <span class="sdp-keyword-card-title">Instagram Audio Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #fd1d1d;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #fd1d1d;">auto_awesome_motion</span>
+      <span class="sdp-keyword-card-title">Instagram Highlight Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #833ab4;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #833ab4;">account_circle</span>
+      <span class="sdp-keyword-card-title">Instagram DP Viewer &amp; Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #e1306c;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #e1306c;">notes</span>
+      <span class="sdp-keyword-card-title">Instagram Caption Saver &amp; Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #1877f2;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #1877f2;">public</span>
+      <span class="sdp-keyword-card-title">Facebook Video Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #1877f2;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #1877f2;">video_library</span>
+      <span class="sdp-keyword-card-title">Download Facebook Reels &amp; Videos</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #1877f2;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #1877f2;">lock</span>
+      <span class="sdp-keyword-card-title">Facebook Private Video Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #1877f2;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #1877f2;">live_tv</span>
+      <span class="sdp-keyword-card-title">Facebook Live Video Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #1877f2;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #1877f2;">amp_stories</span>
+      <span class="sdp-keyword-card-title">Facebook Story Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #e60023;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #e60023;">bookmarks</span>
+      <span class="sdp-keyword-card-title">Pinterest Video Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #e60023;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #e60023;">image</span>
+      <span class="sdp-keyword-card-title">Pinterest Image Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #0077b5;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #0077b5;">work</span>
+      <span class="sdp-keyword-card-title">LinkedIn Video Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #a855f7;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #a855f7;">alternate_email</span>
+      <span class="sdp-keyword-card-title">Threads Video Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #1ab7ea;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #1ab7ea;">video_file</span>
+      <span class="sdp-keyword-card-title">Vimeo Video Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #fffc00;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #fffc00;">history</span>
+      <span class="sdp-keyword-card-title">Snapchat Story Viewer &amp; Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #fffc00;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #fffc00;">chat_bubble</span>
+      <span class="sdp-keyword-card-title">Snapchat Video Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #85c742;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #85c742;">play_arrow</span>
+      <span class="sdp-keyword-card-title">Rumble Video Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #36465d;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #36465d;">favorite</span>
+      <span class="sdp-keyword-card-title">Download Tumblr Video, Images &amp; GIF</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #1da1f2;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #1da1f2;">close</span>
+      <span class="sdp-keyword-card-title">Download X Videos, GIFs, and Audio</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #0084ff;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #0084ff;">movie</span>
+      <span class="sdp-keyword-card-title">Streamable Video Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #ff4500;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #ff4500;">layers</span>
+      <span class="sdp-keyword-card-title">BitChute Video Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #629aa9;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #629aa9;">music_note</span>
+      <span class="sdp-keyword-card-title">Bandcamp Music Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #ff5500;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #ff5500;">cloud_download</span>
+      <span class="sdp-keyword-card-title">SoundCloud Music Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #ffcc00;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #ffcc00;">sentiment_very_satisfied</span>
+      <span class="sdp-keyword-card-title">Download iFunny Videos &amp; Memes</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #161823;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #161823;">video_library</span>
+      <span class="sdp-keyword-card-title">Download Douyin Videos &amp; Stories</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #0560ff;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #0560ff;">cloud</span>
+      <span class="sdp-keyword-card-title">Bluesky Video Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #ff8c00;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #ff8c00;">play_circle_filled</span>
+      <span class="sdp-keyword-card-title">Kwai Video Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #0088cc;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #0088cc;">send</span>
+      <span class="sdp-keyword-card-title">Download Telegram Videos &amp; Clips</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #00c4cc;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #00c4cc;">draw</span>
+      <span class="sdp-keyword-card-title">Download Canva Designs &amp; Videos</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #ff4500;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #ff4500;">forum</span>
+      <span class="sdp-keyword-card-title">Download Reddit Videos &amp; Clips</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #ff2d55;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #ff2d55;">play_circle</span>
+      <span class="sdp-keyword-card-title">Download Likee Videos &amp; Reels</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #1b75bb;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #1b75bb;">cloud_done</span>
+      <span class="sdp-keyword-card-title">TeraBox Video &amp; File Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #5000ff;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #5000ff;">library_music</span>
+      <span class="sdp-keyword-card-title">MixCloud Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #ffea00;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #ffea00;">face</span>
+      <span class="sdp-keyword-card-title">Lemon8 Video Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #4a76a8;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #4a76a8;">account_tree</span>
+      <span class="sdp-keyword-card-title">VK Video Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #0066dc;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #0066dc;">featured_video</span>
+      <span class="sdp-keyword-card-title">Dailymotion Video Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #ff0055;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #ff0055;">play_arrow</span>
+      <span class="sdp-keyword-card-title">MX TakaTak Video Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #25d366;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #25d366;">chat</span>
+      <span class="sdp-keyword-card-title">WhatsApp DP Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #ff2442;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #ff2442;">note</span>
+      <span class="sdp-keyword-card-title">Download RedNote Videos &amp; Clips</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #0081fb;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #0081fb;">psychology</span>
+      <span class="sdp-keyword-card-title">Meta AI Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #53fc18;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #53fc18;">sports_esports</span>
+      <span class="sdp-keyword-card-title">Kick Video Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #ffffff;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #ffffff;">insert_emoticon</span>
+      <span class="sdp-keyword-card-title">9GAG Video Downloader</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #9146ff;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #9146ff;">videogame_asset</span>
+      <span class="sdp-keyword-card-title">Download Twitch Videos &amp; Clips</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #625df5;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #625df5;">screen_share</span>
+      <span class="sdp-keyword-card-title">Download Loom Videos Offline</span>
+    </div>
+    <div class="sdp-keyword-card" style="--accent-color: #ff3d00;">
+      <span class="material-symbols-outlined sdp-keyword-icon" style="color: #ff3d00;">comment</span>
+      <span class="sdp-keyword-card-title">ShareChat Video Downloader</span>
+    </div>
+  </div>
+</div>
+
+<!-- 4. WHY CHOOSE GETINTODEVICE (9-CARD SPECIAL FEATURES SECTION) -->
+<style>
+  .sdp-why-section {
+    margin-top: 30px !important;
+    padding: 44px 32px !important;
+    width: 100% !important;
+  }
+
+  .sdp-why-header {
+    text-align: center !important;
+    margin-bottom: 36px !important;
+    width: 100% !important;
+  }
+
+  .sdp-why-eyebrow {
+    color: #d946ef !important;
+    font-family: var(--font-heading) !important;
+    font-size: 0.82rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.14em !important;
+    text-transform: uppercase !important;
+    margin-bottom: 8px !important;
+    display: block !important;
+  }
+
+  .sdp-why-title {
+    font-family: var(--font-heading) !important;
+    font-size: clamp(1.8rem, 4vw, 2.7rem) !important;
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    margin: 0 0 12px 0 !important;
+    line-height: 1.2 !important;
+  }
+
+  .sdp-why-subtitle {
+    color: var(--text-secondary) !important;
+    font-size: 0.98rem !important;
+    line-height: 1.6 !important;
+    max-width: 680px !important;
+    margin: 0 auto !important;
+  }
+
+  .sdp-why-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 20px !important;
+    width: 100% !important;
+  }
+
+  .sdp-why-card {
+    padding: 32px 24px !important;
+    border-radius: 20px !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid var(--border-glass) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+  }
+
+  .sdp-why-card:hover {
+    transform: translateY(-4px) !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(168, 85, 247, 0.4) !important;
+    box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.5), 0 0 20px -4px rgba(168, 85, 247, 0.25) !important;
+  }
+
+  .sdp-why-icon-box {
+    width: 56px !important;
+    height: 56px !important;
+    border-radius: 16px !important;
+    background: rgba(168, 85, 247, 0.12) !important;
+    border: 1px solid rgba(168, 85, 247, 0.25) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-bottom: 20px !important;
+    transition: transform 0.3s ease, background 0.3s ease !important;
+  }
+
+  .sdp-why-card:hover .sdp-why-icon-box {
+    transform: scale(1.1) !important;
+    background: rgba(168, 85, 247, 0.22) !important;
+    border-color: rgba(217, 70, 239, 0.5) !important;
+  }
+
+  .sdp-why-icon {
+    font-family: 'Material Symbols Outlined' !important;
+    font-size: 1.75rem !important;
+    color: #c084fc !important;
+    line-height: 1 !important;
+  }
+
+  .sdp-why-card h3 {
+    font-family: var(--font-heading) !important;
+    font-size: 1.2rem !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    margin: 0 0 10px 0 !important;
+    line-height: 1.3 !important;
+  }
+
+  .sdp-why-card p {
+    color: var(--text-secondary) !important;
+    font-size: 0.92rem !important;
+    line-height: 1.6 !important;
+    margin: 0 !important;
+  }
+
+  @media (max-width: 980px) {
+    .sdp-why-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 16px !important;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .sdp-why-section {
+      padding: 28px 16px !important;
+    }
+    .sdp-why-grid {
+      grid-template-columns: 1fr !important;
+    }
+    .sdp-why-card {
+      padding: 24px 18px !important;
+    }
+  }
+</style>
+
+<div class="sdp-why-section sdp-glass">
+  <div class="sdp-why-header">
+    <span class="sdp-why-eyebrow">SPECIAL FEATURES</span>
+    <h2 class="sdp-why-title">Why Choose GetintoDevice?</h2>
+    <p class="sdp-why-subtitle">
+      Enjoy quick and effortless video downloads with multi-platform support and no registration required. All for free!
+    </p>
+  </div>
+
+  <div class="sdp-why-grid">
+    <!-- Card 1 -->
+    <div class="sdp-why-card">
+      <div class="sdp-why-icon-box">
+        <span class="sdp-why-icon">all_inclusive</span>
+      </div>
+      <h3>Free and Unlimited</h3>
+      <p>Download as many videos as you want — completely free, with no subscriptions, paywalls, or hidden limitations.</p>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="sdp-why-card">
+      <div class="sdp-why-icon-box">
+        <span class="sdp-why-icon">extension</span>
+      </div>
+      <h3>Seamless Browser Integration</h3>
+      <p>Install our lightweight browser extension for one-click downloads directly from your favorite social media platforms, without navigating away.</p>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="sdp-why-card">
+      <div class="sdp-why-icon-box">
+        <span class="sdp-why-icon">devices</span>
+      </div>
+      <h3>Cross-Device Support</h3>
+      <p>Whether you're on desktop, tablet, or mobile — GetintoDevice adapts to your screen and works flawlessly across devices.</p>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="sdp-why-card">
+      <div class="sdp-why-icon-box">
+        <span class="sdp-why-icon">no_accounts</span>
+      </div>
+      <h3>No Sign-Up Required</h3>
+      <p>Get instant access to all features. We respect your privacy — no accounts, no tracking, no personal data collection.</p>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="sdp-why-card">
+      <div class="sdp-why-icon-box">
+        <span class="sdp-why-icon">hub</span>
+      </div>
+      <h3>Multi-Platform Compatibility</h3>
+      <p>Support for all major platforms: Facebook, Instagram, Twitter (X), Vimeo, TikTok, YouTube and more — all in one place.</p>
+    </div>
+
+    <!-- Card 6 -->
+    <div class="sdp-why-card">
+      <div class="sdp-why-icon-box">
+        <span class="sdp-why-icon">touch_app</span>
+      </div>
+      <h3>Simple, Intuitive UI</h3>
+      <p>Designed for ease of use — just paste the video URL, click download, and enjoy your content offline in seconds.</p>
+    </div>
+
+    <!-- Card 7 -->
+    <div class="sdp-why-card">
+      <div class="sdp-why-icon-box">
+        <span class="sdp-why-icon">hd</span>
+      </div>
+      <h3>High-Quality Downloads</h3>
+      <p>Choose from multiple resolutions including HD and Full HD, ensuring your videos look great on any device.</p>
+    </div>
+
+    <!-- Card 8 -->
+    <div class="sdp-why-card">
+      <div class="sdp-why-icon-box">
+        <span class="sdp-why-icon">verified_user</span>
+      </div>
+      <h3>Safe &amp; Secure</h3>
+      <p>Your safety is our priority. All downloads are scanned and processed securely — no malware, no risks.</p>
+    </div>
+
+    <!-- Card 9 -->
+    <div class="sdp-why-card">
+      <div class="sdp-why-icon-box">
+        <span class="sdp-why-icon">bolt</span>
+      </div>
+      <h3>Lightning-Fast Processing</h3>
+      <p>Optimized for speed. Get your videos converted and downloaded in just a few seconds, even for longer clips.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 4.5. FREQUENTLY ASKED QUESTIONS (SEO OPTIMIZED + SCHEMA JSON-LD) -->
+<style>
+  .sdp-faq-section {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    background: rgba(12, 8, 28, 0.65) !important;
+    backdrop-filter: blur(24px) saturate(1.8) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(1.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-top-color: rgba(255, 255, 255, 0.16) !important;
+    border-radius: 28px !important;
+    padding: 48px 36px !important;
+    margin: 30px auto !important;
+    max-width: 1140px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+    color: #f8fafc !important;
+  }
+
+  .sdp-faq-section * {
+    box-sizing: border-box !important;
+  }
+
+  .sdp-faq-header {
+    text-align: center !important;
+    margin-bottom: 40px !important;
+    width: 100% !important;
+  }
+
+  .sdp-faq-eyebrow {
+    color: #d946ef !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 0.82rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.14em !important;
+    text-transform: uppercase !important;
+    margin-bottom: 8px !important;
+    display: block !important;
+  }
+
+  .sdp-faq-title {
+    font-family: 'Outfit', sans-serif !important;
+    font-size: clamp(1.8rem, 4vw, 2.75rem) !important;
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    margin: 0 0 12px 0 !important;
+    line-height: 1.2 !important;
+  }
+
+  .sdp-faq-subtitle {
+    color: #94a3b8 !important;
+    font-size: 0.98rem !important;
+    line-height: 1.6 !important;
+    max-width: 650px !important;
+    margin: 0 auto !important;
+  }
+
+  .sdp-faq-container {
+    max-width: 900px !important;
+    margin: 0 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+  }
+
+  .sdp-faq-item {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 18px !important;
+    overflow: hidden !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .sdp-faq-item:hover {
+    border-color: rgba(168, 85, 247, 0.35) !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  .sdp-faq-item.active {
+    border-color: rgba(168, 85, 247, 0.5) !important;
+    background: rgba(24, 18, 56, 0.6) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
+  }
+
+  .sdp-faq-question {
+    padding: 20px 24px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    gap: 16px !important;
+  }
+
+  .sdp-faq-question h3 {
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 1.08rem !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    margin: 0 !important;
+    line-height: 1.4 !important;
+  }
+
+  .sdp-faq-toggle-icon {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 10px !important;
+    background: rgba(168, 85, 247, 0.12) !important;
+    border: 1px solid rgba(168, 85, 247, 0.25) !important;
+    color: #c084fc !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    transition: transform 0.3s ease, background 0.3s ease !important;
+  }
+
+  .sdp-faq-item.active .sdp-faq-toggle-icon {
+    transform: rotate(45deg) !important;
+    background: rgba(217, 70, 239, 0.25) !important;
+    color: #ffffff !important;
+    border-color: rgba(217, 70, 239, 0.5) !important;
+  }
+
+  .sdp-faq-toggle-icon span.material-symbols-outlined {
+    font-size: 1.2rem !important;
+    line-height: 1 !important;
+  }
+
+  .sdp-faq-answer {
+    max-height: 0 !important;
+    overflow: hidden !important;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1), padding 0.35s ease !important;
+    padding: 0 24px !important;
+    color: #94a3b8 !important;
+    font-size: 0.95rem !important;
+    line-height: 1.65 !important;
+  }
+
+  .sdp-faq-item.active .sdp-faq-answer {
+    max-height: 300px !important;
+    padding: 0 24px 22px 24px !important;
+  }
+
+  .sdp-faq-answer p {
+    margin: 0 !important;
+  }
+
+  @media (max-width: 640px) {
+    .sdp-faq-section {
+      padding: 32px 18px !important;
+    }
+    .sdp-faq-question {
+      padding: 16px 18px !important;
+    }
+    .sdp-faq-question h3 {
+      font-size: 0.98rem !important;
+    }
+    .sdp-faq-answer {
+      font-size: 0.9rem !important;
+    }
+  }
+</style>
+
+<div class="sdp-faq-section" id="faq">
+  <div class="sdp-faq-header">
+    <span class="sdp-faq-eyebrow">HELP CENTER &amp; FAQ</span>
+    <h2 class="sdp-faq-title">Frequently Asked Questions</h2>
+    <p class="sdp-faq-subtitle">
+      Find quick answers to common questions about downloading social media videos, MP3 audio extraction, and device compatibility on GetintoDevice.
+    </p>
+  </div>
+
+  <div class="sdp-faq-container">
+    <!-- FAQ Item 1 -->
+    <div class="sdp-faq-item active">
+      <div class="sdp-faq-question" onclick="this.parentElement.classList.toggle('active')">
+        <h3>How do I download social media videos for free using GetintoDevice?</h3>
+        <div class="sdp-faq-toggle-icon">
+          <span class="material-symbols-outlined">add</span>
+        </div>
+      </div>
+      <div class="sdp-faq-answer">
+        <p>Downloading social media videos with GetintoDevice is simple and instant. Copy the public URL link of your favorite video from TikTok, Instagram, YouTube, Facebook, or Twitter (X). Paste the link into the input field above and click "Fetch Video". Select your preferred format (Full HD 1080p, 720p, or MP3 audio) and click "Download" to save the file straight to your device.</p>
+      </div>
+    </div>
+
+    <!-- FAQ Item 2 -->
+    <div class="sdp-faq-item">
+      <div class="sdp-faq-question" onclick="this.parentElement.classList.toggle('active')">
+        <h3>Is GetintoDevice completely free without hidden fees or download limits?</h3>
+        <div class="sdp-faq-toggle-icon">
+          <span class="material-symbols-outlined">add</span>
+        </div>
+      </div>
+      <div class="sdp-faq-answer">
+        <p>Yes, GetintoDevice is 100% free with unlimited downloads. There are no registration forms, paid subscriptions, paywalls, or daily download caps. You can convert and save as many HD videos and audio files as you want without creating an account or revealing personal data.</p>
+      </div>
+    </div>
+
+    <!-- FAQ Item 3 -->
+    <div class="sdp-faq-item">
+      <div class="sdp-faq-question" onclick="this.parentElement.classList.toggle('active')">
+        <h3>Can I download TikTok reels and Instagram videos without watermarks?</h3>
+        <div class="sdp-faq-toggle-icon">
+          <span class="material-symbols-outlined">add</span>
+        </div>
+      </div>
+      <div class="sdp-faq-answer">
+        <p>Yes! GetintoDevice automatically extracts clean, uncompressed video streams when available from supported platforms. For TikTok and Instagram Reels, our engine prioritizes no-watermark MP4 video formats so you get clean, high-quality video playback for offline editing or viewing.</p>
+      </div>
+    </div>
+
+    <!-- FAQ Item 4 -->
+    <div class="sdp-faq-item">
+      <div class="sdp-faq-question" onclick="this.parentElement.classList.toggle('active')">
+        <h3>Does GetintoDevice work on mobile devices (iPhone, iPad, Android)?</h3>
+        <div class="sdp-faq-toggle-icon">
+          <span class="material-symbols-outlined">add</span>
+        </div>
+      </div>
+      <div class="sdp-faq-answer">
+        <p>GetintoDevice is fully responsive and web-based, working seamlessly across iOS (iPhone &amp; iPad), Android smartphones, Windows PCs, Macs, and Chromebooks. You do not need to install any mobile apps or browser extensions — simply open your preferred browser (Safari, Chrome, Firefox, Edge) and download videos directly.</p>
+      </div>
+    </div>
+
+    <!-- FAQ Item 5 -->
+    <div class="sdp-faq-item">
+      <div class="sdp-faq-question" onclick="this.parentElement.classList.toggle('active')">
+        <h3>How can I convert video to MP3 audio using GetintoDevice?</h3>
+        <div class="sdp-faq-toggle-icon">
+          <span class="material-symbols-outlined">add</span>
+        </div>
+      </div>
+      <div class="sdp-faq-answer">
+        <p>After pasting your video URL into GetintoDevice and clicking "Fetch Video", our extractor analyzes the media stream and separates high-bitrate audio track options. Under the results section, select the "Download MP3" or "Audio" option to download pure audio tracks without needing dedicated audio converter software.</p>
+      </div>
+    </div>
+
+    <!-- FAQ Item 6 -->
+    <div class="sdp-faq-item">
+      <div class="sdp-faq-question" onclick="this.parentElement.classList.toggle('active')">
+        <h3>Is it safe and legal to download public social media videos?</h3>
+        <div class="sdp-faq-toggle-icon">
+          <span class="material-symbols-outlined">add</span>
+        </div>
+      </div>
+      <div class="sdp-faq-answer">
+        <p>GetintoDevice uses SSL 256-bit encrypted connections and does not host or store any downloaded files on its servers, ensuring 100% user safety. Downloading public media is intended for personal offline archival, educational review, and fair-use viewing. Always respect original content creators and copyright guidelines when sharing downloaded media.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GOOGLE FAQ RICH SNIPPET (JSON-LD SCHEMA FOR TOP GOOGLE RANKINGS) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I download social media videos for free using GetintoDevice?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Downloading social media videos with GetintoDevice is simple and instant. Copy the public URL link of your favorite video from TikTok, Instagram, YouTube, Facebook, or Twitter (X), paste the link into the input field, select your format (1080p Full HD or MP3), and click Download."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is GetintoDevice completely free without hidden fees or download limits?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, GetintoDevice is 100% free with unlimited downloads. There are no registration forms, paid subscriptions, paywalls, or daily download caps."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I download TikTok reels and Instagram videos without watermarks?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes! GetintoDevice automatically extracts clean video streams without watermarks for TikTok and Instagram Reels whenever available."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does GetintoDevice work on mobile devices (iPhone, iPad, Android)?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "GetintoDevice is fully responsive and web-based, working seamlessly across iOS (iPhone & iPad), Android smartphones, Windows PCs, Macs, and Chromebooks directly in your browser."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How can I convert video to MP3 audio using GetintoDevice?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "After pasting your video URL into GetintoDevice and clicking Fetch Video, select the Download MP3 or Audio option to download high-bitrate audio tracks directly."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is it safe and legal to download public social media videos?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "GetintoDevice uses 256-bit SSL encrypted connections and does not host or log downloaded files on its servers. Downloading public media is intended for personal offline archival and fair use."
+      }
+    }
+  ]
+}
+</script>
+
+<!-- 5. ULTRA-PREMIUM CTA & FOOTER SECTION (1140PX BOXED MATCHED DESIGN) -->
+<style>
+  .sdp-footer-wrapper {
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    margin: 30px auto !important;
+    max-width: 1140px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    color: #f8fafc !important;
+  }
+
+  .sdp-footer-wrapper * {
+    box-sizing: border-box !important;
+  }
+
+  /* Floating CTA Box (1140px Boxed) */
+  .sdp-cta-box {
+    background: radial-gradient(circle at 50% 0%, rgba(168, 85, 247, 0.18) 0%, transparent 70%),
+                rgba(13, 9, 32, 0.8) !important;
+    backdrop-filter: blur(24px) saturate(1.8) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(1.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-top-color: rgba(255, 255, 255, 0.2) !important;
+    border-radius: 28px !important;
+    padding: 48px 36px !important;
+    text-align: center !important;
+    margin-bottom: 30px !important;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    width: 100% !important;
+  }
+
+  .sdp-cta-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 8px 18px !important;
+    background: rgba(168, 85, 247, 0.14) !important;
+    border: 1px solid rgba(168, 85, 247, 0.35) !important;
+    border-radius: 50px !important;
+    color: #c084fc !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 0.85rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.04em !important;
+    margin-bottom: 20px !important;
+  }
+
+  .sdp-cta-badge span.material-symbols-outlined {
+    font-size: 1.1rem !important;
+    color: #e879f9 !important;
+  }
+
+  .sdp-cta-box h2 {
+    font-family: 'Outfit', sans-serif !important;
+    font-size: clamp(1.8rem, 4vw, 2.75rem) !important;
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    margin: 0 0 14px 0 !important;
+    line-height: 1.2 !important;
+    background: linear-gradient(135deg, #ffffff 60%, #c084fc) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+  }
+
+  .sdp-cta-box p {
+    color: #94a3b8 !important;
+    font-size: 1rem !important;
+    line-height: 1.6 !important;
+    max-width: 650px !important;
+    margin: 0 auto 28px auto !important;
+  }
+
+  .sdp-cta-pills {
+    display: flex !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+    margin-bottom: 32px !important;
+  }
+
+  .sdp-cta-pill {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 10px 18px !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.09) !important;
+    border-radius: 12px !important;
+    font-size: 0.88rem !important;
+    font-weight: 600 !important;
+    color: #cbd5e1 !important;
+  }
+
+  .sdp-cta-pill span.material-symbols-outlined {
+    font-size: 1.15rem !important;
+    color: #c084fc !important;
+  }
+
+  .sdp-cta-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 10px !important;
+    padding: 16px 38px !important;
+    background: linear-gradient(135deg, #a855f7, #6366f1) !important;
+    color: #ffffff !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 1.05rem !important;
+    font-weight: 800 !important;
+    border-radius: 16px !important;
+    text-decoration: none !important;
+    border: none !important;
+    cursor: pointer !important;
+    box-shadow: 0 12px 35px rgba(168, 85, 247, 0.45) !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .sdp-cta-btn:hover {
+    transform: translateY(-3px) scale(1.02) !important;
+    box-shadow: 0 18px 45px rgba(217, 70, 239, 0.55) !important;
+    opacity: 0.98 !important;
+  }
+
+  .sdp-cta-btn span.material-symbols-outlined {
+    font-size: 1.3rem !important;
+  }
+
+  /* Main Footer Box (1140px Boxed Glass Card) */
+  .sdp-footer-box {
+    background: var(--bg-card) !important;
+    backdrop-filter: blur(24px) saturate(1.8) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(1.8) !important;
+    border: 1px solid var(--border-glass) !important;
+    border-top-color: rgba(255, 255, 255, 0.16) !important;
+    border-radius: 28px !important;
+    padding: 44px 36px 28px 36px !important;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+    width: 100% !important;
+  }
+
+  .sdp-footer-grid {
+    display: grid !important;
+    grid-template-columns: 2.2fr 1fr 1fr 1fr !important;
+    gap: 40px !important;
+    padding-bottom: 36px !important;
+    margin-bottom: 28px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  }
+
+  .sdp-footer-brand-header {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .sdp-footer-logo-icon {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 12px !important;
+    background: linear-gradient(135deg, #a855f7, #6366f1) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #ffffff !important;
+    box-shadow: 0 6px 16px rgba(168, 85, 247, 0.4) !important;
+  }
+
+  .sdp-footer-logo-icon span {
+    font-size: 1.4rem !important;
+  }
+
+  .sdp-footer-brand-header h3 {
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 1.4rem !important;
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    margin: 0 !important;
+  }
+
+  .sdp-footer-desc {
+    color: #94a3b8 !important;
+    font-size: 0.92rem !important;
+    line-height: 1.65 !important;
+    margin: 0 0 20px 0 !important;
+    max-width: 360px !important;
+  }
+
+  .sdp-footer-socials {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+
+  .sdp-social-btn {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 12px !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #94a3b8 !important;
+    text-decoration: none !important;
+    transition: all 0.25s ease !important;
+  }
+
+  .sdp-social-btn:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(168, 85, 247, 0.4) !important;
+    color: #c084fc !important;
+    transform: translateY(-2px) !important;
+  }
+
+  .sdp-social-btn span.material-symbols-outlined {
+    font-size: 1.2rem !important;
+  }
+
+  .sdp-footer-col h4 {
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    margin: 0 0 16px 0 !important;
+    position: relative !important;
+    display: inline-block !important;
+  }
+
+  .sdp-footer-col h4::after {
+    content: '' !important;
+    position: absolute !important;
+    left: 0 !important;
+    bottom: -6px !important;
+    width: 24px !important;
+    height: 2px !important;
+    background: #a855f7 !important;
+    border-radius: 2px !important;
+  }
+
+  .sdp-footer-col ul {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .sdp-footer-col li {
+    margin-bottom: 10px !important;
+  }
+
+  .sdp-footer-col a {
+    color: #94a3b8 !important;
+    text-decoration: none !important;
+    font-size: 0.88rem !important;
+    transition: all 0.2s ease !important;
+    display: inline-block !important;
+  }
+
+  .sdp-footer-col a:hover {
+    color: #ffffff !important;
+    transform: translateX(3px) !important;
+  }
+
+  /* Bottom Bar */
+  .sdp-footer-bottom-bar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-wrap: wrap !important;
+    gap: 16px !important;
+    font-size: 0.86rem !important;
+    color: #64748b !important;
+  }
+
+  .sdp-footer-right-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 14px !important;
+  }
+
+  .sdp-status-pill {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 6px 14px !important;
+    background: rgba(16, 185, 129, 0.1) !important;
+    border: 1px solid rgba(16, 185, 129, 0.25) !important;
+    border-radius: 50px !important;
+    color: #34d399 !important;
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+  }
+
+  .sdp-status-dot {
+    width: 8px !important;
+    height: 8px !important;
+    background: #10b981 !important;
+    border-radius: 50% !important;
+    box-shadow: 0 0 10px #10b981 !important;
+  }
+
+  .sdp-top-btn {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 12px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.25s ease !important;
+  }
+
+  .sdp-top-btn:hover {
+    background: rgba(168, 85, 247, 0.2) !important;
+    border-color: rgba(168, 85, 247, 0.4) !important;
+    color: #e879f9 !important;
+    transform: translateY(-3px) !important;
+  }
+
+  @media (max-width: 1024px) {
+    .sdp-footer-grid {
+      grid-template-columns: 1fr 1fr !important;
+      gap: 32px !important;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .sdp-cta-box {
+      padding: 32px 18px !important;
+      border-radius: 20px !important;
+    }
+    .sdp-footer-box {
+      padding: 28px 18px !important;
+      border-radius: 20px !important;
+    }
+    .sdp-cta-pills {
+      flex-direction: column !important;
+      align-items: stretch !important;
+    }
+    .sdp-cta-btn {
+      width: 100% !important;
+    }
+    .sdp-footer-grid {
+      grid-template-columns: 1fr !important;
+      gap: 24px !important;
+    }
+    .sdp-footer-bottom-bar {
+      flex-direction: column !important;
+      text-align: center !important;
+    }
+  }
+</style>
+
+<div class="sdp-footer-wrapper">
+  <!-- Top Floating CTA Card (1140px Boxed) -->
+  <div class="sdp-cta-box">
+    <div class="sdp-cta-badge">
+      <span class="material-symbols-outlined">bolt</span>
+      <span>Ultra Fast &amp; 100% Free</span>
+    </div>
+    <h2>Ready to Download 4K Videos Instantly?</h2>
+    <p>Join thousands of users fetching high-quality MP4 &amp; MP3 files without any ads, signups, or speed caps.</p>
+    
+    <div class="sdp-cta-pills">
+      <div class="sdp-cta-pill">
+        <span class="material-symbols-outlined">security</span>
+        <span>256-Bit Encrypted</span>
+      </div>
+      <div class="sdp-cta-pill">
+        <span class="material-symbols-outlined">public</span>
+        <span>High-Speed CDN</span>
+      </div>
+      <div class="sdp-cta-pill">
+        <span class="material-symbols-outlined">block</span>
+        <span>Zero Ads</span>
+      </div>
+      <div class="sdp-cta-pill">
+        <span class="material-symbols-outlined">all_inclusive</span>
+        <span>Unlimited Downloads</span>
+      </div>
+    </div>
+
+    <button type="button" class="sdp-cta-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
+      <span class="material-symbols-outlined">download</span>
+      <span>Start Downloading Now</span>
+    </button>
+  </div>
+
+  <!-- Main Footer Box (1140px Boxed Glass Card) -->
+  <div class="sdp-footer-box">
+    <div class="sdp-footer-grid">
+      <!-- Col 1: Brand Info -->
+      <div class="sdp-footer-brand-col">
+        <div class="sdp-footer-brand-header">
+          <div class="sdp-footer-logo-icon">
+            <span class="material-symbols-outlined">cloud_download</span>
+          </div>
+          <h3>GetIntoDevices</h3>
+        </div>
+        <p class="sdp-footer-desc">
+          The ultimate high-speed media downloader powering HD video &amp; audio extraction across all major social media networks with maximum privacy.
+        </p>
+        <div class="sdp-footer-socials">
+          <a class="sdp-social-btn" href="#" title="Website">
+            <span class="material-symbols-outlined">language</span>
+          </a>
+          <a class="sdp-social-btn" href="#" title="GitHub">
+            <span class="material-symbols-outlined">code</span>
+          </a>
+          <a class="sdp-social-btn" href="#" title="Discord">
+            <span class="material-symbols-outlined">forum</span>
+          </a>
+          <a class="sdp-social-btn" href="#" title="YouTube">
+            <span class="material-symbols-outlined">play_circle</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Col 2: Popular Tools -->
+      <div class="sdp-footer-col">
+        <h4>Popular Tools</h4>
+        <ul>
+          <li><a href="/youtube-shorts-downloader">YouTube Video Downloader</a></li>
+          <li><a href="/tiktok-video-downloader">TikTok No-Watermark Saver</a></li>
+          <li><a href="/instagram-reels-downloader">Instagram Reels Downloader</a></li>
+          <li><a href="/facebook-video-downloader">Facebook HD Video Downloader</a></li>
+          <li><a href="/twitter-video-downloader">Twitter / X MP4 Downloader</a></li>
+        </ul>
+      </div>
+
+      <!-- Col 3: Resources -->
+      <div class="sdp-footer-col">
+        <h4>Resources</h4>
+        <ul>
+          <li><a href="#how-to-use-section">How It Works</a></li>
+          <li><a href="#platforms-section">Supported Platforms</a></li>
+          <li><a href="/blog">API Documentation</a></li>
+          <li><a href="/blog">Speed Benchmark</a></li>
+          <li><a href="#faq">Frequently Asked Questions</a></li>
+        </ul>
+      </div>
+
+      <!-- Col 4: Company -->
+      <div class="sdp-footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="/about">About Us</a></li>
+          <li><a href="/privacy-policy">Privacy Policy</a></li>
+          <li><a href="/terms-of-service">Terms of Service</a></li>
+          <li><a href="/dmca">DMCA Disclaimer</a></li>
+          <li><a href="/contact">Contact Support</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="sdp-footer-bottom-bar">
+      <span>&copy; 2026 GetIntoDevices. Built for extreme performance &amp; privacy.</span>
+      <div class="sdp-footer-right-actions">
+        <div class="sdp-status-pill">
+          <span class="sdp-status-dot"></span>
+          <span>All Servers Operational</span>
+        </div>
+        <button type="button" class="sdp-top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'});" title="Back to top">
+          <span class="material-symbols-outlined">arrow_upward</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function() {
+  const BACKEND_BASE_URL = 'https://getintodevices.netlify.app';
+  const API_ENDPOINT = `${BACKEND_BASE_URL}/api/video-info`;
+  const DOWNLOAD_ENDPOINT = `${BACKEND_BASE_URL}/api/download`;
+  const brandSuffix = 'getintodevice.com';
+
+  let currentFormats = [];
+  let currentTitle = 'social-download';
+  let activeFilter = 'all';
+
+  const formatBytes = (bytes) => {
+    if (!bytes || isNaN(bytes)) return '';
+    const mb = (bytes / (1024 * 1024)).toFixed(1);
+    return `${mb} MB`;
+  };
+
+  const safeFileName = (name) =>
+    String(name || "social-download")
+      .replace(/[<>:"/\\|?*\x00-\x1F]/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 80) || "social-download";
+
+  const brandedDownloadName = (name, extension = "mp4") => {
+    const cleanExtension = String(extension || "mp4").replace(/^\./, "").toLowerCase();
+    const baseName = String(name || "social-download")
+      .replace(new RegExp(`\\s*-\\s*${brandSuffix.replace(".", "\\.")}\\s*$`, "i"), "")
+      .replace(/\.[a-z0-9]{2,5}$/i, "");
+    return safeFileName(`${baseName} - ${brandSuffix}.${cleanExtension}`);
+  };
+
+  function initApp() {
+    const form = document.getElementById('sdp-form');
+    const urlInput = document.getElementById('sdp-url');
+    const submitBtn = document.getElementById('sdp-submit-btn');
+    const loader = document.getElementById('sdp-loader');
+    const resultDiv = document.getElementById('sdp-result');
+    const errorDiv = document.getElementById('sdp-error');
+    const formatsContainer = document.getElementById('sdp-formats-container');
+    const summaryPillsContainer = document.getElementById('sdp-summary-pills');
+    const thumbImg = document.getElementById('sdp-thumb');
+    const titleTxt = document.getElementById('sdp-title');
+
+    if (!form || !urlInput || !submitBtn) return;
+
+    const showError = (msg) => {
+      if (errorDiv) {
+        errorDiv.textContent = msg;
+        errorDiv.style.display = 'block';
+      }
+    };
+
+    const hideError = () => {
+      if (errorDiv) errorDiv.style.display = 'none';
+    };
+
+    const setQuickCard = (cardId, metaId, item, fallbackLabel, videoTitle) => {
+      const card = document.getElementById(cardId);
+      const meta = document.getElementById(metaId);
+      if (!card) return;
+      if (!item) {
+        card.style.display = 'none';
+        return;
+      }
+      card.style.display = 'flex';
+      const dlUrl = item.downloadUrl || (item.id ? `${DOWNLOAD_ENDPOINT}?id=${encodeURIComponent(item.id)}` : '#');
+      card.href = dlUrl;
+      card.download = brandedDownloadName(`${videoTitle}-${item.label || fallbackLabel}`, item.extension || 'mp4');
+      if (meta) {
+        meta.textContent = [item.quality, item.size].filter(Boolean).join(' - ') || fallbackLabel;
+      }
+    };
+
+    const renderSummaryPills = (formats) => {
+      if (!summaryPillsContainer) return;
+      const counts = formats.reduce((acc, item) => {
+        acc.total += 1;
+        acc[item.type || 'video'] = (acc[item.type || 'video'] || 0) + 1;
+        return acc;
+      }, { total: 0, video: 0, audio: 0, image: 0 });
+
+      summaryPillsContainer.innerHTML = '';
+      [['Total', counts.total], ['Video', counts.video], ['Audio', counts.audio], ['Images', counts.image]].forEach(([lbl, val]) => {
+        const pill = document.createElement('span');
+        pill.className = 'sdp-summary-pill';
+        pill.innerHTML = `<strong>${val}</strong><small>${lbl}</small>`;
+        summaryPillsContainer.appendChild(pill);
+      });
+    };
+
+    const renderFormatCards = () => {
+      if (!formatsContainer) return;
+      formatsContainer.innerHTML = '';
+
+      const filtered = activeFilter === 'all' 
+        ? currentFormats 
+        : currentFormats.filter(f => (f.type || 'video') === activeFilter);
+
+      if (!filtered.length) {
+        formatsContainer.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 30px; color: var(--text-secondary);">No ${activeFilter} options available for this link.</div>`;
+        return;
+      }
+
+      filtered.forEach((fmt, index) => {
+        const card = document.createElement('article');
+        card.className = `sdp-option-card ${index === 0 ? 'sdp-option-best' : ''}`;
+
+        const topRow = document.createElement('div');
+        topRow.className = 'sdp-option-top';
+
+        const optTitle = document.createElement('div');
+        optTitle.className = 'sdp-option-title';
+        optTitle.textContent = `${index === 0 ? 'Best - ' : ''}${fmt.label || fmt.quality}`;
+
+        const badge = document.createElement('span');
+        badge.className = `sdp-asset-badge sdp-asset-${fmt.type || 'video'}`;
+        badge.textContent = fmt.badge || (fmt.type === 'audio' ? 'AUDIO MP3' : fmt.type === 'image' ? 'THUMBNAIL' : 'AUDIO INCLUDED');
+
+        topRow.appendChild(optTitle);
+        topRow.appendChild(badge);
+
+        const metaRow = document.createElement('div');
+        metaRow.className = 'sdp-meta-pills';
+        [fmt.type, fmt.quality, fmt.extension ? fmt.extension.toUpperCase() : '', fmt.size].filter(Boolean).forEach(val => {
+          const pill = document.createElement('span');
+          pill.className = 'sdp-pill';
+          pill.textContent = val;
+          metaRow.appendChild(pill);
+        });
+
+        const actionsRow = document.createElement('div');
+        actionsRow.className = 'sdp-option-actions';
+
+        const previewBtn = document.createElement('a');
+        previewBtn.className = 'sdp-btn-preview';
+        previewBtn.href = fmt.downloadUrl;
+        previewBtn.target = '_blank';
+        previewBtn.rel = 'noreferrer';
+        previewBtn.textContent = 'Preview';
+
+        const downloadBtn = document.createElement('a');
+        downloadBtn.className = 'sdp-btn-download';
+        downloadBtn.href = fmt.downloadUrl;
+        downloadBtn.target = '_blank';
+        downloadBtn.rel = 'noreferrer';
+        downloadBtn.download = brandedDownloadName(`${currentTitle}-${fmt.quality}`, fmt.extension);
+        downloadBtn.textContent = 'Download';
+
+        actionsRow.appendChild(previewBtn);
+        actionsRow.appendChild(downloadBtn);
+
+        card.appendChild(topRow);
+        card.appendChild(metaRow);
+        card.appendChild(actionsRow);
+
+        formatsContainer.appendChild(card);
+      });
+    };
+
+    const handleFetch = async (e) => {
+      if (e) {
+        e.preventDefault();
+        if (e.stopPropagation) e.stopPropagation();
+      }
+
+      const videoUrl = urlInput.value.trim();
+      if (!videoUrl) return false;
+
+      // UI Reset
+      hideError();
+      if (resultDiv) resultDiv.style.display = 'none';
+      if (formatsContainer) formatsContainer.innerHTML = '';
+      if (loader) loader.style.display = 'block';
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>Processing...</span>';
+
+      try {
+        const response = await fetch(API_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: videoUrl })
+        });
+
+        const data = await response.json().catch(() => ({}));
+
+        if (!response.ok || data.error) {
+          throw new Error(data.error || 'Failed to fetch video details. Make sure the link is public.');
+        }
+
+        // Render Data
+        const title = data.title || 'Social Media Video';
+        currentTitle = title;
+        const thumbnail = data.thumbnail || 'https://via.placeholder.com/640x360?text=No+Thumbnail';
+
+        if (titleTxt) titleTxt.textContent = title;
+        if (thumbImg) thumbImg.src = thumbnail;
+
+        const allFormats = [];
+
+        // Parse formats array (Classic Netlify API)
+        if (Array.isArray(data.formats) && data.formats.length > 0) {
+          data.formats.forEach((format, idx) => {
+            const fId = format.id || `fmt_${idx}`;
+            const fQuality = format.quality || format.resolution || `MP4 ${format.height ? format.height + 'p' : 'Video'}`;
+            const fSize = format.filesize ? formatBytes(format.filesize) : (format.size || '');
+            const dlUrl = format.url ? format.url : `${DOWNLOAD_ENDPOINT}?id=${encodeURIComponent(fId)}`;
+            allFormats.push({
+              id: fId,
+              label: `Video ${fQuality}`,
+              quality: fQuality,
+              type: 'video',
+              badge: 'AUDIO INCLUDED',
+              extension: format.extension || 'mp4',
+              size: fSize,
+              downloadUrl: dlUrl
+            });
+          });
+        }
+
+        // Parse downloads array (Rich Netlify API)
+        if (Array.isArray(data.downloads) && data.downloads.length > 0) {
+          data.downloads.forEach(d => {
+            allFormats.push({
+              id: d.id,
+              label: d.label || d.resolution || 'Video',
+              quality: d.resolution || d.quality || 'HD',
+              type: d.type || 'video',
+              badge: d.badge || (d.type === 'audio' ? 'AUDIO MP3' : d.type === 'image' ? 'THUMBNAIL' : 'AUDIO INCLUDED'),
+              extension: d.extension || 'mp4',
+              size: d.size || (d.filesize ? formatBytes(d.filesize) : ''),
+              downloadUrl: d.download_url ? (d.download_url.startsWith('http') ? d.download_url : `${BACKEND_BASE_URL}${d.download_url}`) : `${DOWNLOAD_ENDPOINT}?id=${encodeURIComponent(d.id)}`
+            });
+          });
+        }
+
+        // Parse audio object (Classic Netlify API)
+        if (data.audio && (data.audio.id || data.audio.url)) {
+          const aId = data.audio.id || 'audio_mp3';
+          const aSize = data.audio.filesize ? formatBytes(data.audio.filesize) : (data.audio.size || '');
+          const aUrl = data.audio.url ? data.audio.url : `${DOWNLOAD_ENDPOINT}?id=${encodeURIComponent(aId)}`;
+          allFormats.push({
+            id: aId,
+            label: 'Audio MP3',
+            quality: '320kbps MP3',
+            type: 'audio',
+            badge: 'AUDIO MP3',
+            extension: 'mp3',
+            size: aSize,
+            downloadUrl: aUrl
+          });
+        }
+
+        // Parse thumbnail HD as Image option
+        if (thumbnail) {
+          allFormats.push({
+            id: 'thumb_hd',
+            label: 'Thumbnail HD',
+            quality: 'Preview Image',
+            type: 'image',
+            badge: 'THUMBNAIL',
+            extension: 'jpg',
+            size: '',
+            downloadUrl: thumbnail
+          });
+        }
+
+        currentFormats = allFormats;
+
+        // Populate 4 Quick Action Cards
+        const videoItems = allFormats.filter(f => f.type === 'video');
+        const audioItem = allFormats.find(f => f.type === 'audio');
+        const imageItem = allFormats.find(f => f.type === 'image');
+
+        setQuickCard('sdp-high-download', 'sdp-high-meta', videoItems[0] || allFormats[0], 'Best Video', title);
+        setQuickCard('sdp-normal-download', 'sdp-normal-meta', videoItems[videoItems.length - 1] || videoItems[0], 'Smaller Video', title);
+        setQuickCard('sdp-audio-download', 'sdp-audio-meta', audioItem, 'Download MP3', title);
+        setQuickCard('sdp-thumb-download', 'sdp-thumb-meta', imageItem, 'Preview Image', title);
+
+        // Render Summary Pills & Format Cards
+        renderSummaryPills(allFormats);
+        renderFormatCards();
+
+        // Show Results Area
+        if (loader) loader.style.display = 'none';
+        if (resultDiv) resultDiv.style.display = 'grid';
+
+      } catch (err) {
+        console.error(err);
+        if (loader) loader.style.display = 'none';
+        showError(err.message || 'Failed to fetch video details.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span class="material-symbols-outlined">analytics</span><span>Fetch Video</span>';
+      }
+
+      return false;
+    };
+
+    // Filter Chips Event Delegation
+    document.addEventListener('click', function(e) {
+      const chip = e.target.closest('.sdp-filter-chip');
+      if (chip) {
+        activeFilter = chip.dataset.filter || 'all';
+        document.querySelectorAll('.sdp-filter-chip').forEach(c => c.classList.toggle('active', c === chip));
+        renderFormatCards();
+      }
+    });
+
+    form.addEventListener('submit', handleFetch);
+    submitBtn.addEventListener('click', handleFetch);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+  } else {
+    initApp();
+  }
+})();
+</script>

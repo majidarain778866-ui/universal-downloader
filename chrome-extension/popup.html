@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GetintoDevice - Social Media Downloader</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="brand-container">
+      <div class="brand-icon-wrapper">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 16 L16 11 L13 11 L13 4 L11 4 L11 11 L8 11 Z M5 18 L19 18 L19 20 L5 20 Z"/>
+        </svg>
+      </div>
+      <div>
+        <span class="brand-title">GetintoDevice</span>
+        <span class="brand-badge">PRO</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="btnRefreshTab" title="Refresh Active Tab Detection">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+          <path d="M17.65 6.35 C16.2 4.9 14.21 4 12 4 C7.58 4 4.01 7.58 4.01 12 C4.01 16.42 7.58 20 12 20 C15.73 20 18.84 17.45 19.73 14 L17.65 14 C16.83 16.33 14.61 18 12 18 C8.69 18 6 15.31 6 12 C6 8.69 8.69 6 12 6 C13.66 6 15.14 6.69 16.22 7.78 L13 11 L20 11 L20 4 L17.65 6.35 Z"/>
+        </svg>
+      </button>
+      <button class="icon-btn" id="btnOpenAdmin" title="Open Admin Dashboard">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+          <path d="M19.43 12.98 C19.47 12.66 19.5 12.34 19.5 12 C19.5 11.66 19.47 11.34 19.43 11.02 L21.54 9.37 C21.73 9.22 21.78 8.95 21.66 8.73 L19.66 5.27 C19.54 5.05 19.27 4.97 19.05 5.05 L16.56 6.05 C16.04 5.65 15.48 5.32 14.87 5.07 L14.49 2.42 C14.46 2.18 14.25 2 14 2 L10 2 C9.75 2 9.54 2.18 9.51 2.42 L9.13 5.07 C8.52 5.32 7.96 5.66 7.44 6.05 L4.95 5.05 C4.72 4.96 4.46 5.05 4.34 5.27 L2.34 8.73 C2.21 8.95 2.27 9.22 2.46 9.37 L4.57 11.02 C4.53 11.34 4.5 11.67 4.5 12 C4.5 12.33 4.53 12.66 4.57 12.98 L2.46 14.63 C2.27 14.78 2.21 15.05 2.34 15.27 L4.34 18.73 C4.46 18.95 4.73 19.03 4.95 18.95 L7.44 17.95 C7.96 18.35 8.52 18.68 9.13 18.93 L9.51 21.58 C9.54 21.82 9.75 22 10 22 L14 22 C14.25 22 14.46 21.82 14.49 21.58 L14.87 18.93 C15.48 18.68 16.04 18.34 16.56 17.95 L19.05 18.95 C19.28 19.04 19.54 18.95 19.66 18.73 L21.66 15.27 C21.78 15.05 21.73 14.78 21.54 14.63 L19.43 12.98 Z M12 15.5 C10.07 15.5 8.5 13.93 8.5 12 C8.5 10.07 10.07 8.5 12 8.5 C13.93 8.5 15.5 10.07 15.5 12 C15.5 13.93 13.93 15.5 12 15.5 Z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Optimized Navigation Tabs -->
+  <nav class="nav-tabs">
+    <button class="tab-btn active" data-tab="tabDownloader">
+      <svg viewBox="0 0 24 24"><path d="M19 9 L15 9 L15 3 L9 3 L9 9 L5 9 L12 16 Z M5 18 L19 18 L19 20 L5 20 Z"/></svg>
+      <span>Downloader</span>
+    </button>
+    <button class="tab-btn" data-tab="tabBatch">
+      <svg viewBox="0 0 24 24"><path d="M4 6 L2 6 L2 20 C2 21.1 2.9 22 4 22 L18 22 L18 20 L4 20 Z M20 2 L8 2 C6.9 2 6 2.9 6 4 L6 16 C6 17.1 6.9 18 8 18 L20 18 C21.1 18 22 17.1 22 16 L22 4 C22 2.9 21.1 2 20 2 Z M20 16 L8 16 L8 4 L20 4 Z"/></svg>
+      <span>Batch Media</span>
+    </button>
+    <button class="tab-btn" data-tab="tabHistory">
+      <svg viewBox="0 0 24 24"><path d="M13 3 C8.03 3 4 7.03 4 12 L1 12 L4.89 15.89 L9 12 L6 12 C6 8.13 9.13 5 13 5 C16.87 5 20 8.13 20 12 C20 15.87 16.87 19 13 19 C11.07 19 9.32 18.21 8.06 16.94 L6.64 18.36 C8.27 19.99 10.51 21 13 21 C17.97 21 22 16.97 22 12 C22 7.03 17.97 3 13 3 Z M12 8 L12 13 L16.28 15.54 L17 14.33 L13.5 12.25 L13.5 8 Z"/></svg>
+      <span>History</span>
+    </button>
+    <button class="tab-btn" data-tab="tabSettings">
+      <svg viewBox="0 0 24 24"><path d="M19.43 12.98 C19.47 12.66 19.5 12.34 19.5 12 C19.5 11.66 19.47 11.34 19.43 11.02 L21.54 9.37 C21.73 9.22 21.78 8.95 21.66 8.73 L19.66 5.27 C19.54 5.05 19.27 4.97 19.05 5.05 L16.56 6.05 C16.04 5.65 15.48 5.32 14.87 5.07 L14.49 2.42 C14.46 2.18 14.25 2 14 2 L10 2 C9.75 2 9.54 2.18 9.51 2.42 L9.13 5.07 C8.52 5.32 7.96 5.66 7.44 6.05 L4.95 5.05 C4.72 4.96 4.46 5.05 4.34 5.27 L2.34 8.73 C2.21 8.95 2.27 9.22 2.46 9.37 L4.57 11.02 C4.53 11.34 4.5 11.67 4.5 12 C4.5 12.33 4.53 12.66 4.57 12.98 L2.46 14.63 C2.27 14.78 2.21 15.05 2.34 15.27 L4.34 18.73 C4.46 18.95 4.73 19.03 4.95 18.95 L7.44 17.95 C7.96 18.35 8.52 18.68 9.13 18.93 L9.51 21.58 C9.54 21.82 9.75 22 10 22 L14 22 C14.25 22 14.46 21.82 14.49 21.58 L14.87 18.93 C15.48 18.68 16.04 18.34 16.56 17.95 L19.05 18.95 C19.28 19.04 19.54 18.95 19.66 18.73 L21.66 15.27 C21.78 15.05 21.73 14.78 21.54 14.63 L19.43 12.98 Z M12 15.5 C10.07 15.5 8.5 13.93 8.5 12 C8.5 10.07 10.07 8.5 12 8.5 C13.93 8.5 15.5 10.07 15.5 12 C15.5 13.93 13.93 15.5 12 15.5 Z"/></svg>
+      <span>Admin</span>
+    </button>
+  </nav>
+
+  <!-- Main Content Wrapper -->
+  <main class="content-wrapper">
+
+    <!-- Tab 1: Single Downloader -->
+    <section id="tabDownloader" class="tab-panel active">
+      
+      <!-- Auto Detect Current Tab -->
+      <div class="detect-bar" id="detectBar">
+        <div class="detect-info">
+          <span class="platform-pill general" id="detectBadge">DETECTING</span>
+          <span class="detect-text" id="detectTitle">Scanning active tab URL...</span>
+        </div>
+        <button class="btn-auto-grab" id="btnGrabCurrent">Auto-Grab</button>
+      </div>
+
+      <!-- Paste Input -->
+      <div class="input-group">
+        <input type="text" class="url-input" id="inputUrl" placeholder="Paste YouTube, TikTok, Instagram link..." autocomplete="off">
+        <button class="input-clear" id="btnClearInput" title="Clear input">✕</button>
+      </div>
+
+      <button class="fetch-btn" id="btnFetch">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+          <path d="M12 16 L16 11 L13 11 L13 4 L11 4 L11 11 L8 11 Z M5 18 L19 18 L19 20 L5 20 Z"/>
+        </svg>
+        <span>Fetch Media & Download</span>
+      </button>
+
+      <!-- Loading Spinner -->
+      <div class="loading-state" id="loadingState">
+        <div class="spinner"></div>
+        <p class="loading-text">Parsing media details & formats...</p>
+      </div>
+
+      <!-- Video Result Card -->
+      <div class="result-card" id="resultCard">
+        <div class="media-preview-box">
+          <img src="" alt="Media Thumbnail" class="media-thumbnail" id="resThumbnail">
+          <span class="media-duration" id="resDuration">00:00</span>
+        </div>
+        <h3 class="media-title" id="resTitle">Video Title</h3>
+        <p class="media-author" id="resAuthor">By @creator</p>
+
+        <div class="format-header">Select Format & Download:</div>
+        <div class="format-options" id="formatList">
+          <!-- Dynamically filled formats -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 2: Batch Media Extractor -->
+    <section id="tabBatch" class="tab-panel">
+      <div style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+        <span style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">Media Links on Active Tab</span>
+        <button class="btn-auto-grab" id="btnScanPage">Scan Page Now</button>
+      </div>
+      <div id="batchMediaList" style="display: flex; flex-direction: column; gap: 8px; max-height: 400px; overflow-y: auto;">
+        <div class="empty-state">Click "Scan Page Now" to find downloadable videos and images on current web page.</div>
+      </div>
+    </section>
+
+    <!-- Tab 3: Download History -->
+    <section id="tabHistory" class="tab-panel">
+      <div style="margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+        <span style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">Recent Downloads</span>
+        <button id="btnClearHistory" style="background: transparent; border: none; color: var(--accent-pink); font-size: 11px; font-weight: 700; cursor: pointer;">Clear History</button>
+      </div>
+      <div class="history-list" id="historyContainer">
+        <div class="empty-state">No recent downloads logged yet.</div>
+      </div>
+    </section>
+
+    <!-- Tab 4: Extension Admin & Customizer -->
+    <section id="tabSettings" class="tab-panel">
+      <div class="admin-link-card" id="cardLaunchAdmin">
+        <div class="admin-link-info">
+          <h4>Open Full Admin Dashboard 🚀</h4>
+          <p>Manage analytics, logs, feature flags & custom themes</p>
+        </div>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="var(--accent-purple)">
+          <path d="M19 19 L5 19 L5 5 L12 5 L12 3 L5 3 C3.89 3 3 3.9 3 5 L3 19 C3 20.1 3.89 21 5 21 L19 21 C20.1 21 21 20.1 21 19 L21 12 L19 12 Z M14 3 L14 5 L17.59 5 L7.76 14.83 L9.17 16.24 L19 6.41 L19 10 L21 10 L21 3 Z"/>
+        </svg>
+      </div>
+
+      <div style="margin-top: 14px; background: var(--bg-surface); border: 1px solid var(--border-glass); border-radius: var(--radius-md); padding: 14px;">
+        <h4 style="font-size: 13px; font-weight: 700; margin-bottom: 12px; color: var(--text-primary);">Extension Preferences</h4>
+
+        <!-- Floating Buttons Switch -->
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+          <div>
+            <span style="font-size: 12px; color: var(--text-primary); font-weight: 600; display: block;">Social Feed Overlay Buttons</span>
+            <span style="font-size: 10px; color: var(--text-muted);">Show floating download buttons on TikTok/Insta/YT</span>
+          </div>
+          <input type="checkbox" id="chkFloatingButtons" checked style="width: 16px; height: 16px; accent-color: var(--accent-purple); cursor: pointer;">
+        </div>
+
+        <!-- Theme Accent Switcher -->
+        <div style="margin-top: 14px; border-top: 1px solid var(--border-glass); padding-top: 12px;">
+          <span style="font-size: 12px; color: var(--text-primary); font-weight: 600; display: block; margin-bottom: 8px;">Accent Theme Color</span>
+          <div style="display: flex; gap: 10px;" id="popupThemePresets">
+            <button class="theme-dot" data-color="#7c3aed" data-name="Purple Glow" title="Purple Glow" style="width: 30px; height: 30px; border-radius: 50%; background: #7c3aed; border: 2px solid #fff; cursor: pointer;"></button>
+            <button class="theme-dot" data-color="#06b6d4" data-name="Cyberpunk Cyan" title="Cyberpunk Cyan" style="width: 30px; height: 30px; border-radius: 50%; background: #06b6d4; border: 2px solid transparent; cursor: pointer;"></button>
+            <button class="theme-dot" data-color="#ec4899" data-name="Sunset Pink" title="Sunset Pink" style="width: 30px; height: 30px; border-radius: 50%; background: #ec4899; border: 2px solid transparent; cursor: pointer;"></button>
+            <button class="theme-dot" data-color="#10b981" data-name="Emerald Green" title="Emerald Green" style="width: 30px; height: 30px; border-radius: 50%; background: #10b981; border: 2px solid transparent; cursor: pointer;"></button>
+            <button class="theme-dot" data-color="#f59e0b" data-name="Amber Gold" title="Amber Gold" style="width: 30px; height: 30px; border-radius: 50%; background: #f59e0b; border: 2px solid transparent; cursor: pointer;"></button>
+            <button class="theme-dot" data-color="#3b82f6" data-name="Electric Blue" title="Electric Blue" style="width: 30px; height: 30px; border-radius: 50%; background: #3b82f6; border: 2px solid transparent; cursor: pointer;"></button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <script src="popup.js"></script>
+</body>
+</html>

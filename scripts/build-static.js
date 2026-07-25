@@ -110,10 +110,10 @@ const renderPage = (template, page) => {
   const allToolsHtml = Object.values(platforms)
     .filter((p) => p.key !== "home" && p.key !== "blog" && p.key !== "blog-detail")
     .map((p) => `
-      <a class="tool-chip glass-panel" href="${escapeHtml(p.route)}" style="--theme-accent: ${escapeHtml(p.theme["--theme-accent"])}">
-        <span class="material-symbols-outlined">${escapeHtml(p.icon)}</span>
-        <span>${escapeHtml(p.title.split(" - ")[0])}</span>
-      </a>`
+      <div class="keyword-tool-card glass-panel" style="--accent-color: ${escapeHtml(p.theme["--theme-accent"] || "#8b5cf6")}">
+        <span class="material-symbols-outlined keyword-tool-icon" style="color: ${escapeHtml(p.theme["--theme-accent"] || "#8b5cf6")}">${escapeHtml(p.icon)}</span>
+        <span class="keyword-tool-title">${escapeHtml(p.title.split(" - ")[0])}</span>
+      </div>`
     )
     .join("\n");
 

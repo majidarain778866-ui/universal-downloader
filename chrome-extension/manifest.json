@@ -1,0 +1,62 @@
+{
+  "manifest_version": 3,
+  "name": "GetintoDevice - Social Video & Audio Downloader",
+  "short_name": "GetintoDevice",
+  "version": "1.0.0",
+  "description": "Download HD & 4K videos, MP3 audio, reels, and stories from TikTok, Instagram, YouTube, Facebook, X (Twitter), Pinterest, and 50+ platforms.",
+  "author": "GetintoDevice Team",
+  "permissions": [
+    "activeTab",
+    "downloads",
+    "storage",
+    "contextMenus",
+    "scripting"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "GetintoDevice Downloader",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "options_page": "admin/admin.html",
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.youtube.com/*",
+        "https://*.tiktok.com/*",
+        "https://*.instagram.com/*",
+        "https://*.twitter.com/*",
+        "https://*.x.com/*",
+        "https://*.facebook.com/*"
+      ],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "icons/*",
+        "admin/*",
+        "styles.css"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

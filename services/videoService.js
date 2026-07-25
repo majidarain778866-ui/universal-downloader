@@ -693,7 +693,7 @@ const cacheMergedDownload = ({ sourceUrl, title, quality = "high", strategy }) =
   };
 };
 
-const normalizeFormat = (format, entry, title, entryIndex, optionIndex) => {
+const normalizeFormat = (format, entry, title, entryIndex, optionIndex, totalEntries = 1) => {
   if (!isHttpUrl(format.url)) return null;
   const type = mediaTypeFor(format);
   const id = cacheDownload({ format, entry, title, entryIndex });
@@ -706,24 +706,26 @@ const normalizeFormat = (format, entry, title, entryIndex, optionIndex) => {
 
   const resolution =
     format.resolution ||
-    (format.width && format.height ? `${format.width}x${format.height}` : type === "audio" ? "Audio only" : "Original");
+    (format.width && format.height ? `${format.width}x${format.height}` : type === "audio" ? "Audio only" : type === "image" ? "Full HD Image" : "Original");
 
   return {
     id,
-    label: optionLabel(format, entryIndex) || `Option ${optionIndex + 1}`,
+    label: optionLabel(format, entryIndex, totalEntries) || `Option ${optionIndex + 1}`,
     resolution,
     type,
     has_audio: mergedAudio || hasAudio(format) || isVideoWebm,
     has_video: hasVideo(format),
     badge: isWatermarked(format)
       ? "Watermarked"
-      : mergedAudio
-        ? "Audio included"
-        : optionIndex === 0 && type === "video"
-          ? "Best no watermark"
-          : "",
+      : type === "image"
+        ? (totalEntries > 1 ? `Carousel Photo ${entryIndex + 1}` : "HD Photo")
+        : mergedAudio
+          ? "Audio included"
+          : optionIndex === 0 && type === "video"
+            ? "Best no watermark"
+            : "",
     is_watermarked: isWatermarked(format),
-    extension: type === "video" ? "mp4" : type === "audio" ? "mp3" : format.ext || "",
+    extension: type === "video" ? "mp4" : type === "audio" ? "mp3" : String(format.ext || "jpg").replace(/^\./, ""),
     format_id: format.format_id || "",
     size: mergedAudio || isVideoWebm ? "" : formatBytes(format.filesize || format.filesize_approx),
     download_url: `/api/download?id=${encodeURIComponent(id)}`,
@@ -743,8 +745,8 @@ const normalizeThumbnail = (thumbnail, title) => {
 
   return {
     id,
-    label: "Thumbnail download",
-    resolution: "Preview image",
+    label: "Full HD Cover / Thumbnail",
+    resolution: "HD Image",
     type: "image",
     badge: "Thumbnail",
     extension: "jpg",
@@ -758,7 +760,18 @@ const collectFormats = (entry) => {
   const formats = [];
   if (Array.isArray(entry.requested_downloads)) formats.push(...entry.requested_downloads);
   if (entry.url) formats.push(entry);
+  if (entry.display_url && entry.display_url !== entry.url) {
+    formats.push({ url: entry.display_url, ext: "jpg", width: entry.width, height: entry.height });
+  }
   if (Array.isArray(entry.formats)) formats.push(...entry.formats);
+
+  // If entry has thumbnails array and no direct formats, include highest res thumbnail
+  if (Array.isArray(entry.thumbnails) && entry.thumbnails.length > 0) {
+    const bestThumb = [...entry.thumbnails].sort((a, b) => (b.width || 0) - (a.width || 0))[0];
+    if (bestThumb && bestThumb.url && isHttpUrl(bestThumb.url)) {
+      formats.push({ url: bestThumb.url, ext: "jpg", width: bestThumb.width, height: bestThumb.height });
+    }
+  }
 
   // 1. Sort candidates first by quality so the best format is selected first
   const sorted = formats
@@ -898,7 +911,7 @@ export const getOrCreateCookiesPath = () => {
   return null;
 };
 
-const buildYtDlpArgs = (url, cookiesPath, { useImpersonate = true, useCookies = true } = {}) => {
+const buildYtDlpArgs = (url, cookiesPath, { useImpersonate = false, useCookies = true, playerClient = "mweb,android,web" } = {}) => {
   const args = [
     ...ytDlpArgs,
     "--dump-single-json",
@@ -912,8 +925,10 @@ const buildYtDlpArgs = (url, cookiesPath, { useImpersonate = true, useCookies = 
     args.push("--impersonate", "chrome");
   }
 
-  // We need specific extractor args to prevent YouTube blocking, while trying to keep high res available
-  args.push("--extractor-args", "youtube:player_client=android,web,ios");
+  if (playerClient) {
+    args.push("--extractor-args", `youtube:player_client=${playerClient}`);
+  }
+
   if (useCookies && cookiesPath) {
     args.push("--cookies", cookiesPath);
   }
@@ -937,13 +952,24 @@ const runYtDlp = async (url) => {
     windowsHide: true
   };
 
+  const clientPresets = [
+    "mweb,android",
+    "tv_html5,android",
+    "android,web,ios",
+    "web_creator,android_creator",
+    "ios,mweb"
+  ];
+
   const strategies = [];
-  if (cookiesPath) {
-    strategies.push({ useCookies: true, useImpersonate: true });
-    strategies.push({ useCookies: true, useImpersonate: false });
+  for (const client of clientPresets) {
+    if (cookiesPath) {
+      strategies.push({ useCookies: true, useImpersonate: false, playerClient: client });
+    }
+    strategies.push({ useCookies: false, useImpersonate: false, playerClient: client });
   }
-  strategies.push({ useCookies: false, useImpersonate: true });
-  strategies.push({ useCookies: false, useImpersonate: false });
+
+  // Impersonate fallback
+  strategies.push({ useCookies: false, useImpersonate: true, playerClient: "mweb,android" });
 
   let lastError;
 
@@ -1121,7 +1147,7 @@ export const fetchVideoDetails = async (url) => {
   let videos = entries.flatMap((entry, entryIndex) => {
     const entryTitle = String(pick(entry, ["title", "fulltitle"]) || title);
     return collectFormats(entry)
-      .map((format, optionIndex) => normalizeFormat(format, entry, entryTitle, entryIndex, optionIndex))
+      .map((format, optionIndex) => normalizeFormat(format, entry, entryTitle, entryIndex, optionIndex, entries.length))
       .filter(Boolean);
   });
   

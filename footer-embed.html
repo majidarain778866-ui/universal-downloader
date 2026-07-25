@@ -1,0 +1,499 @@
+<!-- 
+=========================================================
+  ULTRA-RESPONSIVE FULL-WIDTH EDGE-TO-EDGE SAAS FOOTER
+  Paste this into a "Custom HTML" block at the bottom of 
+  your WordPress Page. In Gutenberg, set Block Alignment 
+  to "Full Width" if available.
+=========================================================
+-->
+
+<!-- 1. FONTS & ICONS -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- 2. FULL-WIDTH BREAKOUT STYLES -->
+<style>
+  /* ⚡ FULL-WIDTH BREAKOUT TRICK TO REMOVE SIDE SPACES IN WORDPRESS */
+  .net-footer-fullwidth-breakout {
+    position: relative;
+    width: 100vw;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    background-color: #080c14;
+    color: #ffffff;
+    box-sizing: border-box;
+    overflow-x: hidden;
+    padding-top: 70px;
+    padding-bottom: 40px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  .net-footer-inner-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Glow Accents */
+  .net-footer-fullwidth-breakout::before {
+    content: '';
+    position: absolute;
+    top: 10%;
+    left: -5%;
+    width: 450px;
+    height: 450px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .net-footer-fullwidth-breakout::after {
+    content: '';
+    position: absolute;
+    bottom: 5%;
+    right: -5%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* ----------------------------------
+     1. PRE-FOOTER GLASS CTA BANNER
+  ----------------------------------- */
+  .net-cta-card {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.95));
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 28px;
+    padding: 50px 32px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), 0 0 50px rgba(99, 102, 241, 0.2);
+    margin-bottom: 80px;
+  }
+
+  .net-cta-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #6366f1, #a855f7, transparent);
+  }
+
+  .net-cta-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 18px;
+    border-radius: 20px;
+    background: rgba(99, 102, 241, 0.18);
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    color: #a5b4fc;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+
+  .net-cta-title {
+    font-size: 2.6rem;
+    font-weight: 800;
+    margin: 0 0 16px 0;
+    background: linear-gradient(to right, #ffffff, #f1f5f9, #c084fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+  }
+
+  .net-cta-desc {
+    color: #94a3b8;
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto 32px auto;
+    line-height: 1.6;
+  }
+
+  /* Trust Badges Strip */
+  .net-trust-strip {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .net-trust-item {
+    color: #cbd5e1;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(15, 23, 42, 0.7);
+    padding: 6px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .net-trust-item i { color: #6366f1; }
+
+  /* Primary Button */
+  .net-btn-primary {
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    color: #ffffff !important;
+    padding: 16px 36px;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    text-decoration: none !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 6px 25px rgba(99, 102, 241, 0.45);
+    transition: all 0.3s ease;
+  }
+
+  .net-btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(168, 85, 247, 0.65);
+  }
+
+  /* ----------------------------------
+     2. 4-COLUMN FOOTER GRID
+  ----------------------------------- */
+  .net-footer-grid {
+    display: grid;
+    grid-template-columns: 2.2fr 1fr 1fr 1fr;
+    gap: 40px;
+    padding-bottom: 50px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .net-ftr-col-brand p {
+    color: #94a3b8;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    margin: 18px 0 24px 0;
+    max-width: 330px;
+  }
+
+  /* Social Icons */
+  .net-social-links {
+    display: flex;
+    gap: 12px;
+  }
+
+  .net-social-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none !important;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+  }
+
+  .net-social-icon:hover {
+    color: #ffffff !important;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    border-color: transparent;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+  }
+
+  .net-ftr-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0 0 22px 0;
+    letter-spacing: -0.3px;
+    position: relative;
+    display: inline-block;
+  }
+
+  .net-ftr-title::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    width: 24px;
+    height: 2px;
+    background: #6366f1;
+    border-radius: 2px;
+  }
+
+  .net-ftr-list {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .net-ftr-list li {
+    margin-bottom: 12px !important;
+  }
+
+  .net-ftr-list a {
+    color: #94a3b8 !important;
+    text-decoration: none !important;
+    font-size: 0.95rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.25s ease !important;
+  }
+
+  .net-ftr-list a:hover {
+    color: #ffffff !important;
+    transform: translateX(4px);
+  }
+
+  .net-ftr-list a:hover i {
+    color: #6366f1;
+    opacity: 1;
+  }
+
+  .net-ftr-list i {
+    font-size: 0.75rem;
+    opacity: 0;
+    transition: all 0.25s ease;
+  }
+
+  /* ----------------------------------
+     3. BOTTOM BAR (COPYRIGHT & STATUS)
+  ----------------------------------- */
+  .net-footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 30px;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .net-copy-text {
+    color: #64748b;
+    font-size: 0.9rem;
+  }
+
+  .net-bottom-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .net-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #4ade80;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .net-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #22c55e;
+    box-shadow: 0 0 12px #22c55e;
+    animation: pulse-dot 2s infinite;
+  }
+
+  @keyframes pulse-dot {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+  }
+
+  .net-totop-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .net-totop-btn:hover {
+    background: #6366f1;
+    border-color: #6366f1;
+    transform: translateY(-3px);
+  }
+
+  /* ----------------------------------
+     4. ULTRA RESPONSIVE MEDIA QUERIES
+  ----------------------------------- */
+  @media (max-width: 992px) {
+    .net-footer-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 36px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .net-cta-card {
+      padding: 36px 20px;
+      border-radius: 20px;
+    }
+    .net-cta-title {
+      font-size: 1.8rem;
+    }
+    .net-cta-desc {
+      font-size: 1rem;
+    }
+    .net-btn-primary {
+      width: 100%;
+      justify-content: center;
+    }
+    .net-footer-grid {
+      grid-template-columns: 1fr;
+      gap: 30px;
+      text-align: center;
+    }
+    .net-ftr-title::after {
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .net-ftr-col-brand p {
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .net-social-links {
+      justify-content: center;
+    }
+    .net-footer-bottom {
+      flex-direction: column;
+      text-align: center;
+      gap: 16px;
+    }
+  }
+</style>
+
+<!-- 3. FOOTER HTML STRUCTURE -->
+<div class="net-footer-fullwidth-breakout">
+  <div class="net-footer-inner-wrap">
+
+    <!-- PRE-FOOTER ENHANCED GLASS CTA BANNER -->
+    <div class="net-cta-card">
+      <div class="net-cta-badge">
+        <i class="fa-solid fa-bolt"></i> Ultra Fast & 100% Free
+      </div>
+
+      <h2 class="net-cta-title">Ready to Download 4K Videos Instantly?</h2>
+      <p class="net-cta-desc">Join thousands of users fetching high-quality MP4 & MP3 files without any ads, signups, or speed caps.</p>
+
+      <!-- Trust Badges -->
+      <div class="net-trust-strip">
+        <div class="net-trust-item"><i class="fa-solid fa-shield-halved"></i> 256-Bit Encrypted</div>
+        <div class="net-trust-item"><i class="fa-solid fa-gauge-high"></i> High-Speed CDN</div>
+        <div class="net-trust-item"><i class="fa-solid fa-ban"></i> Zero Ads</div>
+        <div class="net-trust-item"><i class="fa-solid fa-infinity"></i> Unlimited Downloads</div>
+      </div>
+
+      <!-- Action Button -->
+      <div style="display:flex; justify-content:center;">
+        <a href="#sdp-embed-form" class="net-btn-primary">
+          <i class="fa-solid fa-download"></i> Start Downloading Now
+        </a>
+      </div>
+    </div>
+
+    <!-- 4-COLUMN MAIN FOOTER -->
+    <div class="net-footer-grid">
+      
+      <!-- COL 1: BRAND -->
+      <div class="net-ftr-col-brand">
+        <div style="display: flex; align-items: center; gap: 10px; justify-content: inherit;">
+          <div style="width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #6366f1, #a855f7); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.1rem; box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);">
+            <i class="fa-solid fa-cloud-arrow-down"></i>
+          </div>
+          <span style="font-size: 1.3rem; font-weight: 800; color: #fff; letter-spacing: -0.5px;">GetIntoDevices</span>
+        </div>
+        <p>The ultimate high-speed media downloader powering HD video & audio extraction across all major social media networks with maximum privacy.</p>
+        <div class="net-social-links">
+          <a href="#" class="net-social-icon" title="Twitter / X"><i class="fa-brands fa-x-twitter"></i></a>
+          <a href="#" class="net-social-icon" title="GitHub"><i class="fa-brands fa-github"></i></a>
+          <a href="#" class="net-social-icon" title="Discord"><i class="fa-brands fa-discord"></i></a>
+          <a href="#" class="net-social-icon" title="YouTube"><i class="fa-brands fa-youtube"></i></a>
+        </div>
+      </div>
+
+      <!-- COL 2: POPULAR TOOLS (SEO KEYWORDS) -->
+      <div>
+        <h4 class="net-ftr-title">Popular Tools</h4>
+        <ul class="net-ftr-list">
+          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> YouTube Video Downloader</a></li>
+          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> TikTok No-Watermark Saver</a></li>
+          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Instagram Reels Downloader</a></li>
+          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Facebook HD Video Downloader</a></li>
+          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Twitter / X MP4 Downloader</a></li>
+        </ul>
+      </div>
+
+      <!-- COL 3: RESOURCES -->
+      <div>
+        <h4 class="net-ftr-title">Resources</h4>
+        <ul class="net-ftr-list">
+          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> How It Works</a></li>
+          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Supported Platforms</a></li>
+          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> API Documentation</a></li>
+          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Speed Benchmark</a></li>
+          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Frequently Asked Questions</a></li>
+        </ul>
+      </div>
+
+      <!-- COL 4: LEGAL & COMPANY -->
+      <div>
+        <h4 class="net-ftr-title">Company</h4>
+        <ul class="net-ftr-list">
+          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> About Us</a></li>
+          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Privacy Policy</a></li>
+          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Terms of Service</a></li>
+          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> DMCA Disclaimer</a></li>
+          <li><a href="#"><i class="fa-solid fa-chevron-right"></i> Contact Support</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- BOTTOM BAR -->
+    <div class="net-footer-bottom">
+      <div class="net-copy-text">
+        © 2026 GetIntoDevices. Built for extreme performance & privacy.
+      </div>
+      <div class="net-bottom-right">
+        <div class="net-status-badge">
+          <span class="net-status-dot"></span> All Servers Operational
+        </div>
+        <button class="net-totop-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'});" title="Scroll to top">
+          <i class="fa-solid fa-arrow-up"></i>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

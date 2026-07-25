@@ -1,9 +1,9 @@
 <?php
 /**
- * Plugin Name: Social Downloader App
+ * Plugin Name: Premium Social Media Downloader
  * Plugin URI: https://getintodevice.netlify.app
  * Description: Embed a fast, beautiful, glassmorphic social media video and audio downloader (supporting TikTok, Instagram, YouTube, Facebook, X, Pinterest, and 40+ more platforms) using the shortcode [social_downloader].
- * Version: 1.1.0
+ * Version: 1.0.0
  * Author: Majid Arain
  * Author URI: https://getintodevice.netlify.app
  * License: GPL2
@@ -13,12 +13,8 @@ if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly
 }
 
-if (!defined('PSD_VERSION')) {
-    define('PSD_VERSION', '1.1.0');
-}
-
-if (!class_exists('SocialDownloaderApp')) {
-    class SocialDownloaderApp {
+if (!class_exists('PremiumSocialDownloader')) {
+    class PremiumSocialDownloader {
 
     public function __construct() {
         add_shortcode('social_downloader', array($this, 'render_downloader'));
@@ -35,10 +31,10 @@ if (!class_exists('SocialDownloaderApp')) {
         wp_enqueue_style('psd-material-icons', 'https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200', array(), null);
 
         // Enqueue custom CSS
-        wp_enqueue_style('psd-styles', plugin_dir_url(__FILE__) . 'assets/css/styles.css', array(), PSD_VERSION);
+        wp_enqueue_style('psd-styles', plugin_dir_url(__FILE__) . 'assets/css/styles.css', array(), '1.0.0');
 
         // Enqueue custom JS
-        wp_enqueue_script('psd-app', plugin_dir_url(__FILE__) . 'assets/js/app.js', array(), PSD_VERSION, true);
+        wp_enqueue_script('psd-app', plugin_dir_url(__FILE__) . 'assets/js/app.js', array(), '1.0.0', true);
 
         // Localize script to pass options dynamically from WordPress database
         wp_localize_script('psd-app', 'psdSettings', array(
@@ -64,7 +60,7 @@ if (!class_exists('SocialDownloaderApp')) {
         wp_enqueue_script('wp-color-picker');
 
         // Enqueue custom Admin Stylesheet
-        wp_enqueue_style('psd-admin-styles', plugin_dir_url(__FILE__) . 'assets/css/admin-styles.css', array(), PSD_VERSION);
+        wp_enqueue_style('psd-admin-styles', plugin_dir_url(__FILE__) . 'assets/css/admin-styles.css', array(), '1.0.0');
     }
 
     public function add_admin_menu() {
@@ -99,7 +95,6 @@ if (!class_exists('SocialDownloaderApp')) {
             update_option('psd_enable_instagram', isset($_POST['psd_enable_instagram']) ? '1' : '0');
             update_option('psd_enable_facebook', isset($_POST['psd_enable_facebook']) ? '1' : '0');
             update_option('psd_enable_twitter', isset($_POST['psd_enable_twitter']) ? '1' : '0');
-            update_option('psd_theme', sanitize_text_field($_POST['psd_theme']));
 
             echo '<div class="notice notice-success is-dismissible"><p>Settings saved successfully!</p></div>';
         }
@@ -121,7 +116,6 @@ if (!class_exists('SocialDownloaderApp')) {
         $enable_instagram = get_option('psd_enable_instagram', '1');
         $enable_facebook = get_option('psd_enable_facebook', '1');
         $enable_twitter = get_option('psd_enable_twitter', '1');
-        $default_theme = get_option('psd_theme', 'glass');
         ?>
         <div class="wrap psd-admin-wrap">
             <div class="psd-admin-container">
@@ -155,17 +149,6 @@ if (!class_exists('SocialDownloaderApp')) {
                                     <label for="psd_brand_suffix">File Download Suffix</label>
                                     <input type="text" id="psd_brand_suffix" name="psd_brand_suffix" value="<?php echo esc_attr($brand_suffix); ?>" placeholder="getintodevice.com" class="regular-text" required />
                                     <p class="description">This string is appended to all downloaded filenames (e.g. video - getintodevice.com.mp4).</p>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="psd_theme">Default Theme Preset</label>
-                                    <select id="psd_theme" name="psd_theme">
-                                        <option value="glass" <?php selected($default_theme, 'glass'); ?>>Glassmorphism (Default)</option>
-                                        <option value="dark" <?php selected($default_theme, 'dark'); ?>>Solid Dark</option>
-                                        <option value="light" <?php selected($default_theme, 'light'); ?>>Solid Light</option>
-                                        <option value="minimal" <?php selected($default_theme, 'minimal'); ?>>Flat Minimal</option>
-                                    </select>
-                                    <p class="description">Select the default theme. You can override this on specific pages using <code>[social_downloader theme="light"]</code></p>
                                 </div>
                             </div>
 
@@ -340,188 +323,179 @@ if (!class_exists('SocialDownloaderApp')) {
             --theme-accent: <?php echo esc_html($color_accent); ?> !important;
             --theme-button: linear-gradient(135deg, <?php echo esc_html($color_grad_start); ?>, <?php echo esc_html($color_grad_end); ?>) !important;
             --theme-cta: linear-gradient(135deg, <?php echo esc_html($color_cta_start); ?>, <?php echo esc_html($color_cta_end); ?>) !important;
-            --theme-a: rgba(139, 92, 246, 0.16);
-            --theme-b: rgba(217, 70, 239, 0.12);
         }
         <?php if (!empty($custom_css)) { echo esc_html($custom_css); } ?>
         </style>
 
-        <div class="psd-app-shell" style="border-radius: 24px; margin: 32px 0; overflow: hidden; position: relative; box-shadow: 0 30px 80px rgba(0,0,0,0.5); padding: 48px 24px;">
-            <!-- Glow Backdrops -->
-            <div class="ambient-glow bg-glow-1" aria-hidden="true"></div>
-            <div class="ambient-glow bg-glow-2" aria-hidden="true"></div>
-            <div class="ambient-glow bg-glow-3" aria-hidden="true"></div>
+        <div class="psd-app-shell">
+            <!-- Form Container -->
+            <section class="psd-hero">
+                <form id="download-form" class="download-form glass-panel">
+                    <label for="url-input" class="form-label">
+                        <span class="material-symbols-outlined label-icon">link</span>
+                        <span>Media URL</span>
+                    </label>
+                    <div class="input-row">
+                        <div class="input-wrapper">
+                            <span class="material-symbols-outlined search-icon">search</span>
+                            <input
+                                id="url-input"
+                                name="url"
+                                type="url"
+                                placeholder="Paste TikTok, Instagram, YouTube, Facebook, X..."
+                                autocomplete="off"
+                                required
+                            />
+                        </div>
+                        <button id="fetch-button" type="submit">
+                            <span class="material-symbols-outlined btn-icon">analytics</span>
+                            <span>Analyze</span>
+                        </button>
+                    </div>
+                    <p id="status" class="status" role="status"></p>
+                </form>
+            </section>
 
-            <div class="psd-tool-container" style="max-width: 900px; margin: 0 auto; position: relative; z-index: 2;">
-                <!-- Form Container -->
-                <section class="psd-hero" style="margin-bottom: 24px;">
-                    <form id="download-form" action="javascript:void(0);" method="POST" onsubmit="event.preventDefault(); return false;" class="download-form glass-panel">
-                        <label for="url-input" class="form-label">
-                            <span class="material-symbols-outlined label-icon">link</span>
-                            <span>Media URL</span>
-                        </label>
-                        <div class="input-row">
-                            <div class="input-wrapper">
-                                <span class="material-symbols-outlined search-icon">search</span>
-                                <input
-                                    id="url-input"
-                                    name="url"
-                                    type="url"
-                                    placeholder="Paste TikTok, Instagram, YouTube, Facebook, X..."
-                                    autocomplete="off"
-                                    required
-                                />
+            <!-- Monetization Ad Integration -->
+            <?php if (!empty($ad_code)): ?>
+                <div class="psd-ad-container-frontend" style="margin: 20px 0; text-align: center; max-width: 100%; overflow: hidden;">
+                    <?php echo $ad_code; ?>
+                </div>
+            <?php endif; ?>
+
+            <!-- Loading Spinner -->
+            <div id="loader" class="loader glass-panel" hidden>
+                <div class="loader-orb">
+                    <div class="spinner" aria-hidden="true"></div>
+                    <span id="loader-percent">0%</span>
+                </div>
+                <div class="loader-copy">
+                    <p id="loader-title">Analyzing link...</p>
+                    <span id="loader-detail">Preparing download options</span>
+                    <div class="progress-track" aria-hidden="true">
+                        <span id="progress-bar"></span>
+                    </div>
+                    <div id="process-steps" class="process-steps" aria-label="Analyze process">
+                        <span data-step="0">Validate link</span>
+                        <span data-step="1">Detect platform</span>
+                        <span data-step="2">Read metadata</span>
+                        <span data-step="3">Prepare assets</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result Section -->
+            <section id="result" class="result command-center" hidden>
+                <div class="preview-console glass-panel">
+                    <div class="preview-media">
+                        <video id="smart-preview" controls playsinline preload="metadata" hidden></video>
+                        <img id="thumbnail" alt="" />
+                        <span id="platform-icon" class="platform-icon platform-generic" aria-hidden="true">SD</span>
+                    </div>
+
+                    <div class="preview-details">
+                        <div id="result-badges" class="result-badges"></div>
+                        <p class="eyebrow">Live link preview</p>
+                        <h2 id="title"></h2>
+                        <p id="description" class="preview-desc" style="display: none;"></p>
+                        <p id="count"></p>
+                        <div id="media-stats-box" class="media-stats-box" style="display: none;">
+                            <div class="media-stat-card">
+                                <span class="material-symbols-outlined">visibility</span>
+                                <div class="media-stat-text">
+                                    <span id="stat-views">-</span>
+                                    <small>Views</small>
+                                </div>
                             </div>
-                            <button id="fetch-button" type="submit">
-                                <span class="material-symbols-outlined btn-icon">analytics</span>
-                                <span>Analyze</span>
-                            </button>
+                            <div class="media-stat-card">
+                                <span class="material-symbols-outlined">favorite</span>
+                                <div class="media-stat-text">
+                                    <span id="stat-likes">-</span>
+                                    <small>Likes</small>
+                                </div>
+                            </div>
+                            <div class="media-stat-card">
+                                <span class="material-symbols-outlined">share</span>
+                                <div class="media-stat-text">
+                                    <span id="stat-shares">-</span>
+                                    <small>Shares</small>
+                                </div>
+                            </div>
+                            <div class="media-stat-card">
+                                <span class="material-symbols-outlined">schedule</span>
+                                <div class="media-stat-text">
+                                    <span id="stat-duration">-</span>
+                                    <small>Duration</small>
+                                </div>
+                            </div>
                         </div>
-                        <p id="status" class="status" role="status"></p>
-                    </form>
-                </section>
-
-                <!-- Monetization Ad Integration -->
-                <?php if (!empty($ad_code)): ?>
-                    <div class="psd-ad-container-frontend" style="margin: 20px 0; text-align: center; max-width: 100%; overflow: hidden;">
-                        <?php echo $ad_code; ?>
-                    </div>
-                <?php endif; ?>
-
-                <!-- Loading Spinner -->
-                <div id="loader" class="loader glass-panel" hidden>
-                    <div class="loader-orb">
-                        <div class="spinner" aria-hidden="true"></div>
-                        <span id="loader-percent">0%</span>
-                    </div>
-                    <div class="loader-copy">
-                        <p id="loader-title">Analyzing link...</p>
-                        <span id="loader-detail">Preparing download options</span>
-                        <div class="progress-track" aria-hidden="true">
-                            <span id="progress-bar"></span>
-                        </div>
-                        <div id="process-steps" class="process-steps" aria-label="Analyze process">
-                            <span data-step="0">Validate link</span>
-                            <span data-step="1">Detect platform</span>
-                            <span data-step="2">Read metadata</span>
-                            <span data-step="3">Prepare assets</span>
-                        </div>
+                        <a id="source-link" class="source-link" href="#" target="_blank" rel="noreferrer">
+                            <span class="material-symbols-outlined link-icon">open_in_new</span>
+                            <span>Open source</span>
+                        </a>
                     </div>
                 </div>
 
-                <!-- Result Section -->
-                <section id="result" class="result command-center" hidden>
-                    <div class="preview-console glass-panel">
-                        <div class="preview-media">
-                            <video id="smart-preview" controls playsinline preload="metadata" hidden></video>
-                            <img id="thumbnail" alt="" />
-                            <span id="platform-icon" class="platform-icon platform-generic" aria-hidden="true">SD</span>
-                        </div>
+                <!-- Primary Download Cards -->
+                <div class="primary-actions glass-panel" aria-label="Primary downloads">
+                    <a id="high-download" class="primary-action action-high" href="#">
+                        <span class="material-symbols-outlined action-icon">hd</span>
+                        <span class="action-label">High Quality</span>
+                        <small id="high-meta">Best video</small>
+                    </a>
+                    <a id="normal-download" class="primary-action action-normal" href="#">
+                        <span class="material-symbols-outlined action-icon">video_file</span>
+                        <span class="action-label">Normal Quality</span>
+                        <small id="normal-meta">Smaller video</small>
+                    </a>
+                    <a id="audio-download" class="primary-action action-audio" href="#">
+                        <span class="material-symbols-outlined action-icon">audiotrack</span>
+                        <span class="action-label">Audio MP3</span>
+                        <small id="audio-meta">Download MP3</small>
+                    </a>
+                    <a id="thumbnail-download" class="primary-action action-thumb" href="#">
+                        <span class="material-symbols-outlined action-icon">image</span>
+                        <span class="action-label">Thumbnail HD</span>
+                        <small id="thumb-meta">Preview image</small>
+                    </a>
+                </div>
 
-                        <div class="preview-details">
-                            <div id="result-badges" class="result-badges"></div>
-                            <p class="eyebrow">Live link preview</p>
-                            <h2 id="title"></h2>
-                            <p id="description" class="preview-desc" style="display: none;"></p>
-                            <p id="count"></p>
-                            <div id="media-stats-box" class="media-stats-box" style="display: none;">
-                                <div class="media-stat-card">
-                                    <span class="material-symbols-outlined">visibility</span>
-                                    <div class="media-stat-text">
-                                        <span id="stat-views">-</span>
-                                        <small>Views</small>
-                                    </div>
-                                </div>
-                                <div class="media-stat-card">
-                                    <span class="material-symbols-outlined">favorite</span>
-                                    <div class="media-stat-text">
-                                        <span id="stat-likes">-</span>
-                                        <small>Likes</small>
-                                    </div>
-                                </div>
-                                <div class="media-stat-card">
-                                    <span class="material-symbols-outlined">share</span>
-                                    <div class="media-stat-text">
-                                        <span id="stat-shares">-</span>
-                                        <small>Shares</small>
-                                    </div>
-                                </div>
-                                <div class="media-stat-card">
-                                    <span class="material-symbols-outlined">schedule</span>
-                                    <div class="media-stat-text">
-                                        <span id="stat-duration">-</span>
-                                        <small>Duration</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <a id="source-link" class="source-link" href="#" target="_blank" rel="noreferrer">
-                                <span class="material-symbols-outlined link-icon">open_in_new</span>
-                                <span>Open source</span>
-                            </a>
+                <!-- Creator Details -->
+                <div id="creator-card" class="creator-card profile-panel glass-panel" hidden>
+                    <div class="creator-avatar" id="creator-avatar">SD</div>
+                    <div class="creator-main">
+                        <p class="eyebrow">Creator profile</p>
+                        <h2 id="creator-name"></h2>
+                        <p id="creator-handle"></p>
+                    </div>
+                    <div id="creator-stats" class="creator-stats"></div>
+                    <a id="creator-link" class="source-link" href="#" target="_blank" rel="noreferrer" hidden>
+                        <span class="material-symbols-outlined link-icon">account_circle</span>
+                        <span>View profile</span>
+                    </a>
+                </div>
+
+                <!-- More Formats Accordion -->
+                <details class="more-formats glass-panel">
+                    <summary>
+                        <div class="summary-title-wrapper">
+                            <span class="material-symbols-outlined summary-icon">tune</span>
+                            <span>More formats</span>
+                        </div>
+                        <small>Advanced video, audio, and image options</small>
+                    </summary>
+                    <div class="output-console">
+                        <div id="output-summary" class="output-summary"></div>
+                        <div class="output-tools" aria-label="Output filters">
+                            <button class="filter-chip active" type="button" data-filter="all">All</button>
+                            <button class="filter-chip" type="button" data-filter="video">Video</button>
+                            <button class="filter-chip" type="button" data-filter="audio">Audio</button>
+                            <button class="filter-chip" type="button" data-filter="image">Images</button>
                         </div>
                     </div>
-
-                    <!-- Primary Download Cards -->
-                    <div class="primary-actions glass-panel" aria-label="Primary downloads">
-                        <a id="high-download" class="primary-action action-high" href="#">
-                            <span class="material-symbols-outlined action-icon">hd</span>
-                            <span class="action-label">High Quality</span>
-                            <small id="high-meta">Best video</small>
-                        </a>
-                        <a id="normal-download" class="primary-action action-normal" href="#">
-                            <span class="material-symbols-outlined action-icon">video_file</span>
-                            <span class="action-label">Normal Quality</span>
-                            <small id="normal-meta">Smaller video</small>
-                        </a>
-                        <a id="audio-download" class="primary-action action-audio" href="#">
-                            <span class="material-symbols-outlined action-icon">audiotrack</span>
-                            <span class="action-label">Audio MP3</span>
-                            <small id="audio-meta">Download MP3</small>
-                        </a>
-                        <a id="thumbnail-download" class="primary-action action-thumb" href="#">
-                            <span class="material-symbols-outlined action-icon">image</span>
-                            <span class="action-label">Thumbnail HD</span>
-                            <small id="thumb-meta">Preview image</small>
-                        </a>
-                    </div>
-
-                    <!-- Creator Details -->
-                    <div id="creator-card" class="creator-card profile-panel glass-panel" hidden>
-                        <div class="creator-avatar" id="creator-avatar">SD</div>
-                        <div class="creator-main">
-                            <p class="eyebrow">Creator profile</p>
-                            <h2 id="creator-name"></h2>
-                            <p id="creator-handle"></p>
-                        </div>
-                        <div id="creator-stats" class="creator-stats"></div>
-                        <a id="creator-link" class="source-link" href="#" target="_blank" rel="noreferrer" hidden>
-                            <span class="material-symbols-outlined link-icon">account_circle</span>
-                            <span>View profile</span>
-                        </a>
-                    </div>
-
-                    <!-- More Formats Accordion -->
-                    <details class="more-formats glass-panel">
-                        <summary>
-                            <div class="summary-title-wrapper">
-                                <span class="material-symbols-outlined summary-icon">tune</span>
-                                <span>More formats</span>
-                            </div>
-                            <small>Advanced video, audio, and image options</small>
-                        </summary>
-                        <div class="output-console">
-                            <div id="output-summary" class="output-summary"></div>
-                            <div class="output-tools" aria-label="Output filters">
-                                <button class="filter-chip active" type="button" data-filter="all">All</button>
-                                <button class="filter-chip" type="button" data-filter="video">Video</button>
-                                <button class="filter-chip" type="button" data-filter="audio">Audio</button>
-                                <button class="filter-chip" type="button" data-filter="image">Images</button>
-                            </div>
-                        </div>
-                        <div id="options" class="options"></div>
-                    </details>
-                </section>
-            </div>
+                    <div id="options" class="options"></div>
+                </details>
+            </section>
         </div>
 
         <!-- Custom JS Code Injection -->
@@ -539,5 +513,5 @@ if (!class_exists('SocialDownloaderApp')) {
     }
 }
 
-new SocialDownloaderApp();
+new PremiumSocialDownloader();
 }

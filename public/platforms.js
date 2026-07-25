@@ -1097,7 +1097,7 @@ export const platforms = {
     heroTitle: "Download Kwai Videos Offline",
     heroSubtitle: "Save public videos from Kwai instantly without watermark. Works on all mobile and desktop devices.",
     placeholder: "Paste a Kwai video link...",
-    icon: "play_circle_filled",
+    icon: "play_circle",
     badge: "KW",
     theme: {
       "--theme-a": "rgba(255, 102, 0, 0.18)",

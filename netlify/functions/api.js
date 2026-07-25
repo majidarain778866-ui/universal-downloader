@@ -160,12 +160,12 @@ const streamYtDlpDownload = async (cached, inline = false) => {
     args.push("--impersonate", "chrome");
   }
 
-  // NOTE: We intentionally do NOT pass --extractor-args youtube:player_client=android,web_creator
-  // because that limits yt-dlp to only ~360p. Allow yt-dlp to use its full client negotiation.
-
   if (useCookies && cookiesPath) {
     args.push("--cookies", cookiesPath);
   }
+
+  const client = cached.playerClient || "mweb,android,web";
+  args.push("--extractor-args", `youtube:player_client=${client}`);
 
   if (isAudioMp3) {
     args.push(
