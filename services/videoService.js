@@ -1584,8 +1584,8 @@ export const fetchVideoDetails = async (url) => {
   if (cached && cached.expiresAt > Date.now()) {
     data = cached.data;
   } else {
-    // On Vercel serverless, skip yt-dlp entirely and route directly to platform fallbacks
-    const useDirectFallback = isVercel;
+    // On serverless environments (Netlify & Vercel), route directly to ultra-fast platform fallbacks to avoid 10s timeouts
+    const useDirectFallback = isServerless;
     if (!useDirectFallback) {
       try {
         data = await runYtDlp(normalized);
@@ -1599,7 +1599,7 @@ export const fetchVideoDetails = async (url) => {
         return await routePlatformFallback(normalized, err);
       }
     } else {
-      console.log("[videoService] Vercel env detected – using direct platform fallbacks");
+      console.log("[videoService] Serverless env detected (Netlify/Vercel) – using ultra-fast direct platform fallbacks");
       return await routePlatformFallback(normalized, null);
     }
   }
