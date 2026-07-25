@@ -522,57 +522,39 @@ applyPageContent();
 document.addEventListener("click", (event) => {
   const target = event.target.closest("a.primary-action, a.download-link");
   if (!target || !target.href || target.href.endsWith("#") || target.target === "_blank") return;
-  if (target.dataset.downloading) {
-    event.preventDefault();
-    return;
-  }
+  if (target.dataset.downloading) { event.preventDefault(); return; }
 
   const isDownload = target.classList.contains("download-link") || target.classList.contains("primary-action");
   const downloadHref = target.href;
-  const filename = target.getAttribute("data-filename") || "getintodevice-download";
-
   if (!isDownload || !downloadHref || downloadHref.includes("#")) return;
 
   event.preventDefault();
   target.dataset.downloading = "true";
   const originalHtml = target.innerHTML;
+  const filename = target.getAttribute("data-filename") || "getintodevice-download";
 
   const updateText = (txt) => {
     if (target.classList.contains("primary-action")) {
       const span = target.querySelector("span");
       if (span) span.textContent = txt;
-    } else {
-      target.textContent = txt;
-    }
+    } else { target.textContent = txt; }
   };
-  updateText("⏳ Preparing...");
-  target.style.opacity = "0.7";
-  target.style.pointerEvents = "none";
-  setStatus("Starting your download...");
 
   const revert = (msg = "✅ Download started!") => {
     target.innerHTML = originalHtml;
     target.style.opacity = "";
     target.style.pointerEvents = "";
     delete target.dataset.downloading;
-    setStatus(msg);
-    setTimeout(() => setStatus(""), 5000);
+    if (msg) { setStatus(msg); setTimeout(() => setStatus(""), 5000); }
   };
 
-  // Use a hidden anchor click — same-origin /api/download will stream with Content-Disposition
-  // This works reliably for ALL file sizes (no browser memory limit like fetch+blob)
-  const a = document.createElement("a");
-  a.href = downloadHref;
-  a.download = filename;
-  a.style.display = "none";
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  updateText("⏳ Starting...");
+  target.style.opacity = "0.7";
+  target.style.pointerEvents = "none";
+  setStatus("Opening download...");
 
-  // Revert button state after short delay (download starts in background)
-  setTimeout(() => revert("✅ Download started!"), 1500);
-
-  // Also revert when browser focuses back (indicates download dialog appeared)
-  window.addEventListener("blur", () => setTimeout(() => revert("✅ Download started!"), 500), { once: true });
-  setTimeout(() => revert(""), 30000);
+  // Open in new tab → browser follows 302 redirect to CDN → file downloads/plays
+  // This is the ONLY reliable approach for large video files on Vercel Hobby
+  window.open(downloadHref, "_blank", "noopener");
+  setTimeout(() => revert("✅ Download opening in new tab!"), 800);
 });
