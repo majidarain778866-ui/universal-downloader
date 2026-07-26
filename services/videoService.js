@@ -1040,22 +1040,17 @@ const runYtDlp = async (url) => {
     encoding: "utf8",
     env: commonEnv,
     maxBuffer: 80 * 1024 * 1024,
-    timeout: 120000,
+    timeout: 15000,
     windowsHide: true
   };
 
   const strategies = [];
   if (cookiesPath) {
     strategies.push({ useCookies: true, useImpersonate: false, playerClient: "mweb,android,web" });
-    strategies.push({ useCookies: true, useImpersonate: false, playerClient: "tv_embedded,android" });
     strategies.push({ useCookies: true, useImpersonate: false, playerClient: "ios,android" });
-    strategies.push({ useCookies: true, useImpersonate: true, playerClient: "mweb,android,web" });
   }
   strategies.push({ useCookies: false, useImpersonate: false, playerClient: "mweb,android,web" });
-  strategies.push({ useCookies: false, useImpersonate: true, playerClient: "mweb,android,web" });
-  strategies.push({ useCookies: false, useImpersonate: false, playerClient: "tv_embedded,android" });
   strategies.push({ useCookies: false, useImpersonate: false, playerClient: "ios,android" });
-  strategies.push({ useCookies: false, useImpersonate: false, playerClient: "web_creator,android_creator" });
 
   let lastError;
 
@@ -1081,7 +1076,6 @@ const runYtDlp = async (url) => {
     }
   }
 
-  // Both attempts failed
   const stderr = String(lastError?.stderr || lastError?.message || "");
   console.error("runYtDlp all attempts failed. Stderr:", stderr);
   if (/private|login|cookies|not available|unsupported|unable to extract|unable to download webpage|http error 404|Cannot parse data/i.test(stderr)) {
@@ -1584,23 +1578,25 @@ export const fetchVideoDetails = async (url) => {
   if (cached && cached.expiresAt > Date.now()) {
     data = cached.data;
   } else {
-    // On serverless environments (Netlify & Vercel), route directly to ultra-fast platform fallbacks to avoid 10s timeouts
-    const useDirectFallback = isServerless;
-    if (!useDirectFallback) {
+    // Fast path: for TikTok, Twitter, Instagram, Facebook or serverless environments, try ultra-fast direct extractors first
+    const isFastSocialPlatform = /tiktok\.com|twitter\.com|x\.com|instagram\.com|instagr\.am|facebook\.com|fb\.watch/i.test(normalized);
+    if (isServerless || isFastSocialPlatform) {
       try {
-        data = await runYtDlp(normalized);
-        videoInfoCache.set(normalized, {
-          data,
-          expiresAt: Date.now() + INFO_CACHE_TTL_MS
-        });
-      } catch (err) {
-        console.warn("[videoService] runYtDlp failed, trying platform fallbacks:", err.message);
-        // fall through to platform fallback routing below
-        return await routePlatformFallback(normalized, err);
+        return await routePlatformFallback(normalized, null);
+      } catch (fastErr) {
+        console.warn("[videoService] Direct fast extractor failed, falling back to yt-dlp:", fastErr.message);
       }
-    } else {
-      console.log("[videoService] Serverless env detected (Netlify/Vercel) – using ultra-fast direct platform fallbacks");
-      return await routePlatformFallback(normalized, null);
+    }
+
+    try {
+      data = await runYtDlp(normalized);
+      videoInfoCache.set(normalized, {
+        data,
+        expiresAt: Date.now() + INFO_CACHE_TTL_MS
+      });
+    } catch (err) {
+      console.warn("[videoService] runYtDlp failed, trying platform fallbacks:", err.message);
+      return await routePlatformFallback(normalized, err);
     }
   }
 

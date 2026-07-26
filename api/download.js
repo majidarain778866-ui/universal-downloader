@@ -1,4 +1,18 @@
 import { getCachedDownload } from "../services/videoService.js";
+import { Readable } from "node:stream";
+
+const safeFileName = (name) =>
+  String(name || "social-download")
+    .replace(/[<>:"/\\|?*\x00-\x1F]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 120) || "social-download";
+
+const contentDisposition = (filename) => {
+  const cleanName = safeFileName(filename);
+  const asciiName = cleanName.replace(/[^\x20-\x7E]/g, "").trim() || "download";
+  return `attachment; filename="${asciiName.replace(/"/g, "")}"; filename*=UTF-8''${encodeURIComponent(cleanName)}`;
+};
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -8,7 +22,7 @@ export default async function handler(req, res) {
 
   if (req.method === "OPTIONS") return res.status(200).end();
 
-  const { id } = req.query || {};
+  const { id, preview } = req.query || {};
 
   if (!id) {
     return res.status(400).json({ error: "Missing download ID." });
@@ -32,6 +46,38 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "No direct media URL found. Please re-fetch the video." });
   }
 
-  // 302 redirect directly to media CDN URL
-  return res.redirect(302, targetUrl);
+  const filename = cached.filename || "social-download.mp4";
+
+  try {
+    const upstream = await fetch(targetUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+        ...(cached.headers || {})
+      }
+    });
+
+    if (!upstream.ok || !upstream.body) {
+      return res.redirect(302, targetUrl);
+    }
+
+    const contentType = upstream.headers.get("content-type") || "application/octet-stream";
+    const contentLength = upstream.headers.get("content-length");
+
+    res.status(200);
+    res.setHeader("Content-Type", contentType);
+    if (preview !== "1") {
+      res.setHeader("Content-Disposition", contentDisposition(filename));
+    } else {
+      res.setHeader("Content-Disposition", `inline; filename="${safeFileName(filename)}"`);
+    }
+    if (contentLength) {
+      res.setHeader("Content-Length", contentLength);
+    }
+
+    const nodeStream = Readable.fromWeb(upstream.body);
+    nodeStream.pipe(res);
+  } catch (err) {
+    console.error("[Download API Proxy Error]:", err?.message);
+    return res.redirect(302, targetUrl);
+  }
 }

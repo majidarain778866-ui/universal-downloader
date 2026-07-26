@@ -522,39 +522,26 @@ applyPageContent();
 document.addEventListener("click", (event) => {
   const target = event.target.closest("a.primary-action, a.download-link");
   if (!target || !target.href || target.href.endsWith("#") || target.target === "_blank") return;
-  if (target.dataset.downloading) { event.preventDefault(); return; }
 
   const isDownload = target.classList.contains("download-link") || target.classList.contains("primary-action");
   const downloadHref = target.href;
   if (!isDownload || !downloadHref || downloadHref.includes("#")) return;
 
   event.preventDefault();
-  target.dataset.downloading = "true";
-  const originalHtml = target.innerHTML;
-  const filename = target.getAttribute("data-filename") || "getintodevice-download";
+  setStatus("⏳ Starting download...");
 
-  const updateText = (txt) => {
-    if (target.classList.contains("primary-action")) {
-      const span = target.querySelector("span");
-      if (span) span.textContent = txt;
-    } else { target.textContent = txt; }
-  };
+  let iframe = document.querySelector("#download-iframe");
+  if (!iframe) {
+    iframe = document.createElement("iframe");
+    iframe.id = "download-iframe";
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
+  }
 
-  const revert = (msg = "✅ Download started!") => {
-    target.innerHTML = originalHtml;
-    target.style.opacity = "";
-    target.style.pointerEvents = "";
-    delete target.dataset.downloading;
-    if (msg) { setStatus(msg); setTimeout(() => setStatus(""), 5000); }
-  };
+  iframe.src = downloadHref;
 
-  updateText("⏳ Starting...");
-  target.style.opacity = "0.7";
-  target.style.pointerEvents = "none";
-  setStatus("Opening download...");
-
-  // Open in new tab → browser follows 302 redirect to CDN → file downloads/plays
-  // This is the ONLY reliable approach for large video files on Vercel Hobby
-  window.open(downloadHref, "_blank", "noopener");
-  setTimeout(() => revert("✅ Download opening in new tab!"), 800);
+  setTimeout(() => {
+    setStatus("✅ Download started!");
+    setTimeout(() => setStatus(""), 4000);
+  }, 1200);
 });
