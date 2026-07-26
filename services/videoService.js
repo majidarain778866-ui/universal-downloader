@@ -1435,40 +1435,52 @@ const fetchTwitterFallback = async (url) => {
 };
 
 const fetchFacebookFallback = async (url) => {
-  // Use Cobalt.tools API - a free open-source media downloader API
-  const cobaltRes = await fetch("https://api.cobalt.tools/", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Accept": "application/json",
-      "User-Agent": "SocialDownloader/1.0"
-    },
-    body: JSON.stringify({ url, videoQuality: "max", filenameStyle: "basic" })
-  }).catch(() => null);
+  // Strategy 1: Cobalt API instances
+  const cobaltEndpoints = [
+    "https://api.cobalt.tools/",
+    "https://co.wuk.sh/api/json",
+    "https://cobalt.stream/api/json"
+  ];
 
-  if (cobaltRes && cobaltRes.ok) {
-    const cobData = await cobaltRes.json().catch(() => ({}));
-    const videoUrl = cobData.url || (cobData.status === "stream" ? cobData.url : null);
-    if (videoUrl) {
-      const title = cobData.filename?.replace(/\.[^.]+$/, "") || "Facebook Video";
-      const vId = cacheDownload({ format: { url: videoUrl, ext: "mp4" }, title });
-      const downloads = [{
-        id: vId, label: "Facebook HD MP4 Video", resolution: "Best HD MP4",
-        type: "video", has_audio: true, has_video: true, badge: "Best MP4 Video", extension: "mp4",
-        download_url: `/api/download?id=${encodeURIComponent(vId)}`,
-        preview_url: `/api/download?id=${encodeURIComponent(vId)}&preview=1`
-      }];
-      return {
-        title, thumbnail: "", platform: "Facebook", platform_key: "facebook",
-        platform_label: "Facebook", platform_icon: "FB", uploader: "Facebook Creator",
-        duration: "HD Media", source_url: url,
-        primary_actions: { high_quality: downloads[0], normal_quality: downloads[0], audio_mp3: null, thumbnail_hd: null },
-        downloads, videos: downloads
-      };
+  for (const endpoint of cobaltEndpoints) {
+    try {
+      const cobaltRes = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
+        },
+        body: JSON.stringify({ url, videoQuality: "max", filenameStyle: "basic" })
+      }).catch(() => null);
+
+      if (cobaltRes && cobaltRes.ok) {
+        const cobData = await cobaltRes.json().catch(() => ({}));
+        const videoUrl = cobData.url || (cobData.status === "stream" ? cobData.url : null);
+        if (videoUrl) {
+          const title = cobData.filename?.replace(/\.[^.]+$/, "") || "Facebook Video";
+          const vId = cacheDownload({ format: { url: videoUrl, ext: "mp4" }, title });
+          const downloads = [{
+            id: vId, label: "Facebook HD MP4 Video", resolution: "Best HD MP4",
+            type: "video", has_audio: true, has_video: true, badge: "Best MP4 Video", extension: "mp4",
+            download_url: `/api/download?id=${encodeURIComponent(vId)}`,
+            preview_url: `/api/download?id=${encodeURIComponent(vId)}&preview=1`
+          }];
+          return {
+            title, thumbnail: "", platform: "Facebook", platform_key: "facebook",
+            platform_label: "Facebook", platform_icon: "FB", uploader: "Facebook Creator",
+            duration: "HD Media", source_url: url,
+            primary_actions: { high_quality: downloads[0], normal_quality: downloads[0], audio_mp3: null, thumbnail_hd: null },
+            downloads, videos: downloads
+          };
+        }
+      }
+    } catch {
+      // try next strategy
     }
   }
 
-  // Fallback: try to extract video from Facebook share URL directly
+  // Strategy 2: Direct Facebook public page scraping with decoded unicode & multi-pattern regex
   const fbRes = await fetch(url, {
     headers: {
       "User-Agent": "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
@@ -1477,14 +1489,26 @@ const fetchFacebookFallback = async (url) => {
   }).catch(() => null);
 
   if (fbRes && fbRes.ok) {
-    const html = await fbRes.text().catch(() => "");
-    const mp4Match = html.match(/"(?:browser_native_hd_url|playable_url_quality_hd|browser_native_sd_url|playable_url)":\s*"([^"]+\.mp4[^"]*)"/);
-    const thumbMatch = html.match(/"preferred_thumbnail":\s*\{[^}]*"uri":\s*"([^"]+)"/);
-    const titleMatch = html.match(/<title>([^<]{5,200})<\/title>/);
+    const rawHtml = await fbRes.text().catch(() => "");
+    const html = rawHtml
+      .replace(/\\u0025/g, "%")
+      .replace(/\\u0026/g, "&")
+      .replace(/\\/g, "");
 
-    const videoUrl = mp4Match ? mp4Match[1].replace(/\\\//g, "/").replace(/\\u0025/g, "%") : null;
-    const thumbUrl = thumbMatch ? thumbMatch[1].replace(/\\\//g, "/") : null;
-    const title = titleMatch ? titleMatch[1].replace(/ \| Facebook$/, "").replace(/&amp;/g, "&").trim() : "Facebook Video";
+    const mp4Match =
+      html.match(/"(?:browser_native_hd_url|playable_url_quality_hd|browser_native_sd_url|playable_url|sd_src|hd_src|sd_src_no_ratelimit|hd_src_no_ratelimit)":\s*"([^"]+)"/i) ||
+      html.match(/(https:\/\/[^"]+fbcdn\.net[^"]+\.mp4[^"\s]*)/i);
+
+    const thumbMatch =
+      html.match(/"preferred_thumbnail":\s*\{[^}]*"uri":\s*"([^"]+)"/i) ||
+      html.match(/property="og:image"\s+content="([^"]+)"/i) ||
+      html.match(/(https:\/\/[^"]+fbcdn\.net[^"]+\.(?:jpg|png)[^"\s]*)/i);
+
+    const titleMatch = rawHtml.match(/<title>([^<]{3,200})<\/title>/i);
+
+    const videoUrl = mp4Match ? mp4Match[1] : null;
+    const thumbUrl = thumbMatch ? thumbMatch[1] : null;
+    const title = titleMatch ? titleMatch[1].replace(/ \| Facebook$/i, "").replace(/&amp;/g, "&").trim() : "Facebook Video";
 
     if (videoUrl || thumbUrl) {
       const downloads = [];
