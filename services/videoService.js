@@ -1160,6 +1160,33 @@ const extractYouTubeId = (urlStr) => {
   return null;
 };
 
+const fetchYtDirectDownloadUrl = async (url, format = "720") => {
+  try {
+    const initRes = await fetch(`https://loader.to/ajax/download.php?format=${format}&url=${encodeURIComponent(url)}`, {
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36" }
+    }).catch(() => null);
+    if (!initRes || !initRes.ok) return null;
+    const initData = await initRes.json().catch(() => ({}));
+    if (!initData.id) return null;
+
+    let attempts = 0;
+    while (attempts < 10) {
+      attempts++;
+      await new Promise(r => setTimeout(r, 600));
+      const pRes = await fetch(`https://loader.to/ajax/progress.php?id=${initData.id}`).catch(() => null);
+      if (!pRes || !pRes.ok) continue;
+      const pData = await pRes.json().catch(() => ({}));
+      if (pData.download_url && pData.download_url.startsWith("http")) {
+        return pData.download_url;
+      }
+      if (pData.progress === 1000 || pData.success === 1) break;
+    }
+  } catch (e) {
+    console.error("[fetchYtDirectDownloadUrl Error]:", e?.message);
+  }
+  return null;
+};
+
 const fetchYouTubeFallback = async (url) => {
   const videoId = extractYouTubeId(url);
   if (!videoId) throw new Error("Could not parse YouTube Video ID.");
@@ -1175,26 +1202,30 @@ const fetchYouTubeFallback = async (url) => {
   const thumbnail = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
   const maxThumbnail = `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
 
-  const videoStreamUrl = `https://www.youtube.com/watch?v=${videoId}`;
-  const videoFormat1080 = cacheMergedDownload({ sourceUrl: videoStreamUrl, title, quality: "high", strategy: { useCookies: true, useImpersonate: false } });
-  const videoFormat720 = cacheMergedDownload({ sourceUrl: videoStreamUrl, title, quality: "normal", strategy: { useCookies: true, useImpersonate: false } });
-  const audioOption = cacheMp3Download({ sourceUrl: videoStreamUrl, title });
-  const thumbOption = normalizeThumbnail(maxThumbnail, title);
+  // Fetch real direct stream URLs for Vercel serverless environment
+  const directMp4Url = await fetchYtDirectDownloadUrl(url, "720");
+  const directMp3Url = await fetchYtDirectDownloadUrl(url, "mp3");
 
-  const downloads = [
-    {
-      id: videoFormat1080.id,
-      label: "1080p Full HD MP4 Video",
-      resolution: "1080p (Full HD)",
+  const downloads = [];
+
+  if (directMp4Url) {
+    const vId = cacheDownload({ format: { url: directMp4Url, ext: "mp4" }, title });
+    downloads.push({
+      id: vId,
+      label: "720p HD MP4 Video",
+      resolution: "720p (HD)",
       type: "video",
       has_audio: true,
       has_video: true,
       badge: "Best MP4 Video",
       extension: "mp4",
-      download_url: videoFormat1080.download_url,
-      preview_url: videoFormat1080.preview_url
-    },
-    {
+      download_url: `/api/download?id=${encodeURIComponent(vId)}`,
+      preview_url: `/api/download?id=${encodeURIComponent(vId)}&preview=1`
+    });
+  } else {
+    const videoStreamUrl = `https://www.youtube.com/watch?v=${videoId}`;
+    const videoFormat720 = cacheMergedDownload({ sourceUrl: videoStreamUrl, title, quality: "normal", strategy: { useCookies: true, useImpersonate: false } });
+    downloads.push({
       id: videoFormat720.id,
       label: "720p HD MP4 Video",
       resolution: "720p (HD)",
@@ -1205,10 +1236,27 @@ const fetchYouTubeFallback = async (url) => {
       extension: "mp4",
       download_url: videoFormat720.download_url,
       preview_url: videoFormat720.preview_url
-    },
-    audioOption
-  ];
+    });
+  }
 
+  if (directMp3Url) {
+    const aId = cacheDownload({ format: { url: directMp3Url, ext: "mp3" }, title });
+    downloads.push({
+      id: aId,
+      label: "Audio MP3 (Highest Quality)",
+      resolution: "320kbps MP3",
+      type: "audio",
+      badge: "Audio MP3",
+      extension: "mp3",
+      download_url: `/api/download?id=${encodeURIComponent(aId)}`
+    });
+  } else {
+    const videoStreamUrl = `https://www.youtube.com/watch?v=${videoId}`;
+    const audioOption = cacheMp3Download({ sourceUrl: videoStreamUrl, title });
+    downloads.push(audioOption);
+  }
+
+  const thumbOption = normalizeThumbnail(maxThumbnail, title);
   if (thumbOption) downloads.push(thumbOption);
 
   return {
@@ -1237,8 +1285,8 @@ const fetchYouTubeFallback = async (url) => {
     },
     primary_actions: {
       high_quality: downloads[0],
-      normal_quality: downloads[1],
-      audio_mp3: audioOption,
+      normal_quality: downloads[0],
+      audio_mp3: downloads.find(d => d.type === "audio") || null,
       thumbnail_hd: thumbOption
     },
     downloads,

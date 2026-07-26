@@ -63,6 +63,12 @@ export default async function handler(req, res) {
     const contentType = upstream.headers.get("content-type") || "application/octet-stream";
     const contentLength = upstream.headers.get("content-length");
 
+    // Prevent HTML web pages or JSON error responses from being sent as .mp4 downloads
+    if (contentType.toLowerCase().includes("text/html") || contentType.toLowerCase().includes("application/json")) {
+      console.warn(`[Download] Upstream returned non-media content-type: ${contentType}. Redirecting to source.`);
+      return res.redirect(302, targetUrl);
+    }
+
     res.status(200);
     res.setHeader("Content-Type", contentType);
     if (preview !== "1") {
