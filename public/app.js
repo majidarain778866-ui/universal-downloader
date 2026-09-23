@@ -112,12 +112,19 @@ const setLoading = (isLoading, heading = "Analyzing link...", detail = "Preparin
   }
 };
 
-const safeFileName = (name) =>
-  String(name || "social-download")
+const safeFileName = (name) => {
+  const str = String(name || "social-download")
     .replace(/[<>:"/\\|?*\x00-\x1F]/g, "")
     .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 80) || "social-download";
+    .trim();
+  const dotIndex = str.lastIndexOf(".");
+  if (dotIndex > 0 && dotIndex > str.length - 8) {
+    const ext = str.slice(dotIndex);
+    const base = str.slice(0, dotIndex).slice(0, 80).trim();
+    return `${base}${ext}`;
+  }
+  return str.slice(0, 80) || "social-download";
+};
 
 const brandedDownloadName = (name, extension = "") => {
   const cleanExtension = String(extension || "").replace(/^\./, "").toLowerCase();

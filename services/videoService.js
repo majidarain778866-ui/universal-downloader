@@ -518,19 +518,27 @@ const formatDuration = (seconds) => {
   return `${restMins}:${String(secs).padStart(2, "0")}`;
 };
 
-const safeFileName = (name) =>
-  String(name || "social-download")
+const safeFileName = (name) => {
+  const str = String(name || "social-download")
     .replace(/[<>:"/\\|?*\x00-\x1F]/g, "")
     .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 45) || "social-download";
+    .trim();
+  const dotIndex = str.lastIndexOf(".");
+  if (dotIndex > 0 && dotIndex > str.length - 8) {
+    const ext = str.slice(dotIndex);
+    const base = str.slice(0, dotIndex).slice(0, 80).trim();
+    return `${base}${ext}`;
+  }
+  return str.slice(0, 80) || "social-download";
+};
 
 const brandedFileName = (name, extension) => {
   const cleanExtension = String(extension || "mp4").replace(/^\./, "") || "mp4";
   let baseName = String(name || "social-download")
     .replace(new RegExp(`\\s*-\\s*${BRAND_SUFFIX.replace(".", "\\.")}\\s*$`, "i"), "")
-    .replace(/\.[a-z0-9]{2,5}$/i, "");
-  if (baseName.length > 50) baseName = baseName.slice(0, 50).trim() + "...";
+    .replace(/\.[a-z0-9]{2,5}$/i, "")
+    .trim();
+  if (baseName.length > 50) baseName = baseName.slice(0, 50).trim();
   return safeFileName(`${baseName} - ${BRAND_SUFFIX}.${cleanExtension}`);
 };
 
@@ -1000,9 +1008,8 @@ export const getOrCreateCookiesPath = () => {
   return null;
 };
 
-const buildYtDlpArgs = (url, cookiesPath, { useImpersonate = false, useCookies = true, playerClient = "mweb,android,web" } = {}) => {
+const buildYtDlpArgs = (url, cookiesPath, { useImpersonate = true, useCookies = true, playerClient = "android,web" } = {}) => {
   const isYouTube = /youtube\.com|youtu\.be/i.test(url);
-  const isInstagram = /instagram\.com|instagr\.am/i.test(url);
   const args = [
     ...ytDlpArgs,
     "--dump-single-json",
@@ -1021,10 +1028,6 @@ const buildYtDlpArgs = (url, cookiesPath, { useImpersonate = false, useCookies =
 
   if (isYouTube && playerClient) {
     args.push("--extractor-args", `youtube:player_client=${playerClient}`);
-  }
-
-  if (isInstagram) {
-    args.push("--extractor-args", "instagram:app_id=ios");
   }
 
   if (useCookies && cookiesPath) {
@@ -1047,21 +1050,21 @@ const runYtDlp = async (url) => {
     encoding: "utf8",
     env: commonEnv,
     maxBuffer: 80 * 1024 * 1024,
-    timeout: isYouTube ? 8000 : 5000,
+    timeout: isYouTube ? 35000 : 25000,
     windowsHide: true
   };
 
   const strategies = [];
   if (isYouTube) {
     if (cookiesPath) {
-      strategies.push({ useCookies: true, useImpersonate: false, playerClient: "mweb,android,web" });
+      strategies.push({ useCookies: true, useImpersonate: false, playerClient: "android,web" });
     }
-    strategies.push({ useCookies: false, useImpersonate: false, playerClient: "mweb,android,web" });
+    strategies.push({ useCookies: false, useImpersonate: false, playerClient: "android,web" });
   } else {
     if (cookiesPath) {
-      strategies.push({ useCookies: true, useImpersonate: false });
+      strategies.push({ useCookies: true, useImpersonate: true });
     }
-    strategies.push({ useCookies: false, useImpersonate: false });
+    strategies.push({ useCookies: false, useImpersonate: true });
   }
 
   let lastError;
@@ -1536,10 +1539,220 @@ const fetchTikTokFallback = async (url) => {
   throw new Error("Could not extract TikTok video link. Please check if link is public.");
 };
 
+const decodeSnapApp = (args) => {
+  let [h, u, n, t, e, r] = args;
+  const tNum = Number(t);
+  const eNum = Number(e);
+  function decode(d, e, f) {
+    const g = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ+/".split("");
+    const hArr = g.slice(0, e);
+    const iArr = g.slice(0, f);
+    let j = d.split("").reverse().reduce((a, b, c) => {
+      const idx = hArr.indexOf(b);
+      if (idx !== -1) return a + idx * Math.pow(e, c);
+      return a;
+    }, 0);
+    let k = "";
+    while (j > 0) {
+      k = iArr[j % f] + k;
+      j = Math.floor(j / f);
+    }
+    return k || "0";
+  }
+  let result = "";
+  for (let i = 0, len = h.length; i < len;) {
+    let s = "";
+    while (i < len && h[i] !== n[eNum]) {
+      s += h[i];
+      i++;
+    }
+    i++;
+    for (let j = 0; j < n.length; j++) s = s.replace(new RegExp(n[j], "g"), j.toString());
+    result += String.fromCharCode(Number(decode(s, eNum, 10)) - tNum);
+  }
+  try {
+    const bytes = new Uint8Array(result.split("").map((c) => c.charCodeAt(0)));
+    return new TextDecoder("utf-8").decode(bytes);
+  } catch {
+    return result;
+  }
+};
+
+const getEncodedSnapApp = (data) => {
+  if (!data || typeof data !== "string") return null;
+  const parts = data.split("decodeURIComponent(escape(r))}(");
+  if (parts.length < 2) return null;
+  return parts[1].split("))")[0].split(",").map((v) => v.replace(/"/g, "").trim());
+};
+
+const extractSnapSaveMedia = (decoded) => {
+  if (!decoded || typeof decoded !== "string") return [];
+  const marker = 'getElementById("download-section").innerHTML = "';
+  const start = decoded.indexOf(marker);
+  if (start === -1) return [];
+  const end = decoded.indexOf('"; document.getElementById("inputData").remove();', start);
+  const htmlRaw = end !== -1 ? decoded.slice(start + marker.length, end) : decoded.slice(start + marker.length);
+  const html = htmlRaw.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+
+  const items = [];
+
+  // Pattern 1: Card items (.download-items)
+  const cardRegex = /<div class="download-items">([\s\S]*?)<\/div>\s*<\/div>/g;
+  let cardMatch;
+  while ((cardMatch = cardRegex.exec(html)) !== null) {
+    const block = cardMatch[1];
+    const thumbMatch = block.match(/<img[^>]+src="([^"]+)"/i);
+    const linkMatch = block.match(/<a[^>]+href="([^"]+)"/i);
+    const isVideo = /icon-dlvideo|download video/i.test(block);
+
+    if (linkMatch && linkMatch[1].startsWith("http")) {
+      items.push({
+        url: linkMatch[1],
+        thumb: thumbMatch ? thumbMatch[1] : "",
+        type: isVideo ? "video" : "image",
+        resolution: isVideo ? "1080p (Full HD)" : "High-Res Image"
+      });
+    }
+  }
+
+  // Pattern 2: Table items (table.table)
+  if (items.length === 0) {
+    const rowRegex = /<tr[^>]*>([\s\S]*?)<\/tr>/g;
+    let rowMatch;
+    while ((rowMatch = rowRegex.exec(html)) !== null) {
+      const row = rowMatch[1];
+      const resMatch = row.match(/<td[^>]*>(.*?)<\/td>/i);
+      const linkMatch = row.match(/<a[^>]+href="([^"]+)"/i);
+      if (linkMatch && linkMatch[1].startsWith("http")) {
+        const qualityText = resMatch ? resMatch[1].replace(/<[^>]+>/g, "").trim() : "Best Quality";
+        items.push({
+          url: linkMatch[1],
+          thumb: "",
+          type: "video",
+          resolution: qualityText
+        });
+      }
+    }
+  }
+
+  // Fallback: direct rapidcdn link
+  if (items.length === 0) {
+    const anyLinkMatch = html.match(/href="(https:\/\/[^"]*rapidcdn\.app[^"]*)"/i);
+    if (anyLinkMatch) {
+      items.push({
+        url: anyLinkMatch[1],
+        thumb: "",
+        type: "video",
+        resolution: "1080p (Full HD)"
+      });
+    }
+  }
+
+  return items;
+};
+
+const querySnapSave = async (url) => {
+  const fd = new URLSearchParams();
+  fd.append("url", url);
+  const res = await fetch("https://snapsave.app/action.php?lang=en", {
+    method: "POST",
+    headers: {
+      "accept": "*/*",
+      "content-type": "application/x-www-form-urlencoded",
+      "origin": "https://snapsave.app",
+      "referer": "https://snapsave.app/",
+      "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+    },
+    body: fd.toString()
+  }).catch(() => null);
+
+  if (!res || !res.ok) return [];
+  const raw = await res.text().catch(() => "");
+  const encoded = getEncodedSnapApp(raw);
+  if (!encoded) return [];
+  const decoded = decodeSnapApp(encoded);
+  return extractSnapSaveMedia(decoded);
+};
+
 const fetchInstagramFallback = async (url) => {
   const cleanUrl = url.split("?")[0].replace(/\/+$/, "");
 
-  // Strategy 1: Check embedded captioned and public embed endpoints
+  // Strategy 1: SnapSave (Supports Reels, Posts, Carousels with HD MP4 and Images)
+  try {
+    const variations = [cleanUrl];
+    if (cleanUrl.includes("/reel/")) {
+      variations.push(cleanUrl.replace("/reel/", "/p/"));
+    } else if (cleanUrl.includes("/reels/")) {
+      variations.push(cleanUrl.replace("/reels/", "/p/"));
+    }
+
+    let snapItems = [];
+    for (const vUrl of variations) {
+      snapItems = await querySnapSave(vUrl);
+      if (snapItems.length > 0) break;
+    }
+
+    if (snapItems.length > 0) {
+      const title = "Instagram Media";
+      const downloads = [];
+      let firstThumb = "";
+
+      snapItems.forEach((item, idx) => {
+        if (!firstThumb && item.thumb) firstThumb = item.thumb;
+        const isVid = item.type === "video";
+        const label = snapItems.length > 1
+          ? (isVid ? `Instagram HD Video ${idx + 1}` : `Instagram HD Photo ${idx + 1}`)
+          : (isVid ? "Instagram HD MP4 Video" : "Instagram HD Photo");
+        const badge = isVid ? "1080p (Full HD)" : "High-Res Image";
+        const ext = isVid ? "mp4" : "jpeg";
+        const formatId = cacheDownload({ format: { url: item.url, ext }, title: `${title}-${idx + 1}` });
+
+        downloads.push({
+          id: formatId,
+          label,
+          resolution: item.resolution || (isVid ? "1080p (Full HD)" : "HD Photo"),
+          type: item.type,
+          has_audio: isVid,
+          has_video: isVid,
+          badge,
+          extension: ext,
+          download_url: `/api/download?id=${encodeURIComponent(formatId)}`,
+          preview_url: `/api/download?id=${encodeURIComponent(formatId)}&preview=1`
+        });
+
+        if (item.thumb) {
+          const tOpt = normalizeThumbnail(item.thumb, `${title}-thumb-${idx + 1}`);
+          if (tOpt) downloads.push(tOpt);
+        }
+      });
+
+      if (downloads.length > 0) {
+        return {
+          title,
+          thumbnail: firstThumb,
+          platform: "Instagram",
+          platform_key: "instagram",
+          platform_label: "Instagram",
+          platform_icon: "IG",
+          uploader: "Instagram Creator",
+          duration: "HD Media",
+          source_url: url,
+          primary_actions: {
+            high_quality: downloads[0] || null,
+            normal_quality: downloads[0] || null,
+            audio_mp3: null,
+            thumbnail_hd: downloads.find(d => d.type === "image") || null
+          },
+          downloads,
+          videos: downloads
+        };
+      }
+    }
+  } catch (err) {
+    console.warn("[videoService] SnapSave Instagram error:", err.message);
+  }
+
+  // Strategy 2: Check embedded captioned and public embed endpoints
   const embedUrls = [`${cleanUrl}/embed/captioned/`, `${cleanUrl}/embed/`];
   let videoUrl = null;
   let imgUrl = null;
@@ -1572,7 +1785,7 @@ const fetchInstagramFallback = async (url) => {
     } catch {}
   }
 
-  // Strategy 2: Social media crawler user-agent for OpenGraph tags
+  // Strategy 3: Social media crawler user-agent for OpenGraph tags
   if (!videoUrl && !imgUrl) {
     try {
       const fbRes = await fetch(cleanUrl, {
@@ -1595,13 +1808,9 @@ const fetchInstagramFallback = async (url) => {
     } catch {}
   }
 
-  if (!videoUrl && !imgUrl) {
-    throw new Error("This Instagram post or reel requires login or is private. Please ensure the link is public or update cookies.txt with a valid Instagram session.");
-  }
-
-  const title = caption || "Instagram Media";
-  const downloads = [];
   if (videoUrl) {
+    const title = caption || "Instagram Video";
+    const downloads = [];
     const vId = cacheDownload({ format: { url: videoUrl, ext: "mp4" }, title });
     downloads.push({
       id: vId,
@@ -1615,31 +1824,34 @@ const fetchInstagramFallback = async (url) => {
       download_url: `/api/download?id=${encodeURIComponent(vId)}`,
       preview_url: `/api/download?id=${encodeURIComponent(vId)}&preview=1`
     });
-  }
-  if (imgUrl) {
-    const thumbOpt = normalizeThumbnail(imgUrl, title);
-    if (thumbOpt) downloads.push(thumbOpt);
+
+    if (imgUrl) {
+      const thumbOpt = normalizeThumbnail(imgUrl, title);
+      if (thumbOpt) downloads.push(thumbOpt);
+    }
+
+    return {
+      title,
+      thumbnail: imgUrl || "",
+      platform: "Instagram",
+      platform_key: "instagram",
+      platform_label: "Instagram",
+      platform_icon: "IG",
+      uploader: "Instagram Creator",
+      duration: "HD Media",
+      source_url: url,
+      primary_actions: {
+        high_quality: downloads[0] || null,
+        normal_quality: downloads[0] || null,
+        audio_mp3: null,
+        thumbnail_hd: downloads.find(d => d.type === "image") || null
+      },
+      downloads,
+      videos: downloads
+    };
   }
 
-  return {
-    title,
-    thumbnail: imgUrl || "",
-    platform: "Instagram",
-    platform_key: "instagram",
-    platform_label: "Instagram",
-    platform_icon: "IG",
-    uploader: "Instagram Creator",
-    duration: "HD Media",
-    source_url: url,
-    primary_actions: {
-      high_quality: downloads[0] || null,
-      normal_quality: downloads[0] || null,
-      audio_mp3: null,
-      thumbnail_hd: downloads.find(d => d.type === "image") || null
-    },
-    downloads,
-    videos: downloads
-  };
+  throw new Error("This Instagram post or reel is private, requires login, or was removed. Please ensure the link is from a public account.");
 };
 
 const fetchTwitterFallback = async (url) => {
@@ -1702,49 +1914,60 @@ const fetchTwitterFallback = async (url) => {
 };
 
 const fetchFacebookFallback = async (url) => {
-  // Strategy 1: Cobalt API instances
-  const cobaltEndpoints = [
-    "https://api.cobalt.tools/",
-    "https://co.wuk.sh/api/json",
-    "https://cobalt.stream/api/json"
-  ];
+  // Strategy 1: SnapSave (Ultra-fast Facebook HD 720p & SD 360p MP4)
+  try {
+    const snapItems = await querySnapSave(url);
+    if (snapItems.length > 0) {
+      const title = "Facebook Video";
+      const downloads = [];
+      let firstThumb = "";
 
-  for (const endpoint of cobaltEndpoints) {
-    try {
-      const cobaltRes = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
-        },
-        body: JSON.stringify({ url, videoQuality: "max", filenameStyle: "basic" })
-      }).catch(() => null);
+      snapItems.forEach((item, idx) => {
+        if (!firstThumb && item.thumb) firstThumb = item.thumb;
+        const vId = cacheDownload({ format: { url: item.url, ext: "mp4" }, title: `${title}-${idx + 1}` });
+        downloads.push({
+          id: vId,
+          label: snapItems.length > 1 ? `Facebook MP4 Video (${item.resolution})` : "Facebook HD MP4 Video",
+          resolution: item.resolution || "Best HD MP4",
+          type: "video",
+          has_audio: true,
+          has_video: true,
+          badge: idx === 0 ? "Best HD MP4" : "Fast MP4",
+          extension: "mp4",
+          download_url: `/api/download?id=${encodeURIComponent(vId)}`,
+          preview_url: `/api/download?id=${encodeURIComponent(vId)}&preview=1`
+        });
+      });
 
-      if (cobaltRes && cobaltRes.ok) {
-        const cobData = await cobaltRes.json().catch(() => ({}));
-        const videoUrl = cobData.url || (cobData.status === "stream" ? cobData.url : null);
-        if (videoUrl) {
-          const title = cobData.filename?.replace(/\.[^.]+$/, "") || "Facebook Video";
-          const vId = cacheDownload({ format: { url: videoUrl, ext: "mp4" }, title });
-          const downloads = [{
-            id: vId, label: "Facebook HD MP4 Video", resolution: "Best HD MP4",
-            type: "video", has_audio: true, has_video: true, badge: "Best MP4 Video", extension: "mp4",
-            download_url: `/api/download?id=${encodeURIComponent(vId)}`,
-            preview_url: `/api/download?id=${encodeURIComponent(vId)}&preview=1`
-          }];
-          return {
-            title, thumbnail: "", platform: "Facebook", platform_key: "facebook",
-            platform_label: "Facebook", platform_icon: "FB", uploader: "Facebook Creator",
-            duration: "HD Media", source_url: url,
-            primary_actions: { high_quality: downloads[0], normal_quality: downloads[0], audio_mp3: null, thumbnail_hd: null },
-            downloads, videos: downloads
-          };
-        }
+      if (firstThumb) {
+        const tOpt = normalizeThumbnail(firstThumb, title);
+        if (tOpt) downloads.push(tOpt);
       }
-    } catch {
-      // try next strategy
+
+      if (downloads.length > 0) {
+        return {
+          title,
+          thumbnail: firstThumb,
+          platform: "Facebook",
+          platform_key: "facebook",
+          platform_label: "Facebook",
+          platform_icon: "FB",
+          uploader: "Facebook Creator",
+          duration: "HD Media",
+          source_url: url,
+          primary_actions: {
+            high_quality: downloads[0] || null,
+            normal_quality: downloads[1] || downloads[0] || null,
+            audio_mp3: null,
+            thumbnail_hd: downloads.find(d => d.type === "image") || null
+          },
+          downloads,
+          videos: downloads
+        };
+      }
     }
+  } catch (err) {
+    console.warn("[videoService] SnapSave Facebook error:", err.message);
   }
 
   // Strategy 2: Direct Facebook public page scraping with decoded unicode & multi-pattern regex
@@ -1777,17 +2000,16 @@ const fetchFacebookFallback = async (url) => {
     const thumbUrl = thumbMatch ? thumbMatch[1] : null;
     const title = titleMatch ? titleMatch[1].replace(/ \| Facebook$/i, "").replace(/&amp;/g, "&").trim() : "Facebook Video";
 
-    if (videoUrl || thumbUrl) {
+    if (videoUrl) {
       const downloads = [];
-      if (videoUrl) {
-        const vId = cacheDownload({ format: { url: videoUrl, ext: "mp4" }, title });
-        downloads.push({
-          id: vId, label: "Facebook HD MP4 Video", resolution: "Best HD MP4",
-          type: "video", has_audio: true, has_video: true, badge: "Best MP4 Video", extension: "mp4",
-          download_url: `/api/download?id=${encodeURIComponent(vId)}`,
-          preview_url: `/api/download?id=${encodeURIComponent(vId)}&preview=1`
-        });
-      }
+      const vId = cacheDownload({ format: { url: videoUrl, ext: "mp4" }, title });
+      downloads.push({
+        id: vId, label: "Facebook HD MP4 Video", resolution: "Best HD MP4",
+        type: "video", has_audio: true, has_video: true, badge: "Best MP4 Video", extension: "mp4",
+        download_url: `/api/download?id=${encodeURIComponent(vId)}`,
+        preview_url: `/api/download?id=${encodeURIComponent(vId)}&preview=1`
+      });
+
       if (thumbUrl) {
         const tOpt = normalizeThumbnail(thumbUrl, title);
         if (tOpt) downloads.push(tOpt);
@@ -1824,33 +2046,6 @@ const routePlatformFallback = async (url, originalErr) => {
   if (url.includes("youtube.com") || url.includes("youtu.be")) {
     return await fetchYouTubeFallback(url);
   }
-  // Generic platforms: try cobalt.tools API as last resort
-  const cobaltRes = await fetch("https://api.cobalt.tools/", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Accept": "application/json" },
-    body: JSON.stringify({ url, videoQuality: "max", filenameStyle: "basic" })
-  }).catch(() => null);
-  if (cobaltRes && cobaltRes.ok) {
-    const cobData = await cobaltRes.json().catch(() => ({}));
-    const videoUrl = cobData.url;
-    if (videoUrl) {
-      const title = cobData.filename?.replace(/\.[^.]+$/, "") || "Media Download";
-      const vId = cacheDownload({ format: { url: videoUrl, ext: "mp4" }, title });
-      const downloads = [{
-        id: vId, label: "Best Quality MP4 Video", resolution: "Best MP4",
-        type: "video", has_audio: true, has_video: true, badge: "Best MP4 Video", extension: "mp4",
-        download_url: `/api/download?id=${encodeURIComponent(vId)}`,
-        preview_url: `/api/download?id=${encodeURIComponent(vId)}&preview=1`
-      }];
-      return {
-        title, thumbnail: "", platform: "Social Media", platform_key: "generic",
-        platform_label: "Social Media", platform_icon: "DL", uploader: "Creator",
-        duration: "HD Media", source_url: url,
-        primary_actions: { high_quality: downloads[0], normal_quality: downloads[0], audio_mp3: null, thumbnail_hd: null },
-        downloads, videos: downloads
-      };
-    }
-  }
   if (originalErr) throw originalErr;
   throw new Error("This platform is not supported yet. Please try YouTube, TikTok, Instagram, Twitter, or Facebook links.");
 };
@@ -1867,13 +2062,24 @@ export const fetchVideoDetails = async (url) => {
   let data;
   const cached = videoInfoCache.get(normalized);
   if (cached && cached.expiresAt > Date.now()) {
+    if (cached.data && cached.data.downloads) {
+      return cached.data;
+    }
     data = cached.data;
   } else {
     // Fast path: for TikTok, Twitter, Instagram, Facebook or serverless environments, try ultra-fast direct extractors first
     const isFastSocialPlatform = /tiktok\.com|twitter\.com|x\.com|instagram\.com|instagr\.am|facebook\.com|fb\.watch/i.test(normalized);
     if (isServerless || isFastSocialPlatform) {
       try {
-        return await routePlatformFallback(normalized, null);
+        const fastResult = await routePlatformFallback(normalized, null);
+        const hasVideo = fastResult && Array.isArray(fastResult.downloads) && fastResult.downloads.some(d => d.type === "video");
+        if (fastResult && fastResult.downloads && (hasVideo || !isFastSocialPlatform)) {
+          videoInfoCache.set(normalized, {
+            data: fastResult,
+            expiresAt: Date.now() + INFO_CACHE_TTL_MS
+          });
+          return fastResult;
+        }
       } catch (fastErr) {
         console.warn("[videoService] Direct fast extractor failed, falling back to yt-dlp:", fastErr.message);
       }
@@ -1886,8 +2092,16 @@ export const fetchVideoDetails = async (url) => {
         expiresAt: Date.now() + INFO_CACHE_TTL_MS
       });
     } catch (err) {
+      if (isFastSocialPlatform) throw err;
       console.warn("[videoService] runYtDlp failed, trying platform fallbacks:", err.message);
-      return await routePlatformFallback(normalized, err);
+      const fallbackResult = await routePlatformFallback(normalized, err);
+      if (fallbackResult && fallbackResult.downloads) {
+        videoInfoCache.set(normalized, {
+          data: fallbackResult,
+          expiresAt: Date.now() + INFO_CACHE_TTL_MS
+        });
+      }
+      return fallbackResult;
     }
   }
 

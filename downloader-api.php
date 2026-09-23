@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Netlify Backend Endpoint
-define('NETLIFY_BASE_URL', 'https://getintodevices.netlify.app');
+define('NETLIFY_BASE_URL', 'https://getintodevice.netlify.app');
 
 $action = isset($_GET['action']) ? trim($_GET['action']) : '';
 

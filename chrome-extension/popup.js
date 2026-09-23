@@ -289,8 +289,8 @@ function renderMediaResultCard(data, sourceUrl) {
       const dlBtn = item.querySelector('.btn-download-format');
       dlBtn.addEventListener('click', () => {
         const downloadUrl = fmt.download_url
-          ? (fmt.download_url.startsWith('http') ? fmt.download_url : `${PRODUCTION_API_BASE}${fmt.download_url}`)
-          : (fmt.url.startsWith('http') ? fmt.url : `${PRODUCTION_API_BASE}${fmt.url}`);
+          ? (fmt.download_url.startsWith('http') ? fmt.download_url : `${apiBase}${fmt.download_url}`)
+          : (fmt.url.startsWith('http') ? fmt.url : `${apiBase}${fmt.url}`);
         
         const ext = fmt.extension || fmt.ext || (isAudio ? 'mp3' : isImage ? 'jpg' : 'mp4');
         const filename = `${safeFileName(data.title || 'media')}.${ext}`;

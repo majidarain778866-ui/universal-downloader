@@ -130,12 +130,19 @@ const readJsonBody = async (req) => {
   return JSON.parse(raw);
 };
 
-const safeFileName = (name) =>
-  String(name || "download")
+const safeFileName = (name) => {
+  const str = String(name || "download")
     .replace(/[<>:"/\\|?*\x00-\x1F]/g, "")
     .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 120) || "download";
+    .trim();
+  const dotIndex = str.lastIndexOf(".");
+  if (dotIndex > 0 && dotIndex > str.length - 8) {
+    const ext = str.slice(dotIndex);
+    const base = str.slice(0, dotIndex).slice(0, 100).trim();
+    return `${base}${ext}`;
+  }
+  return str.slice(0, 100) || "download";
+};
 
 const contentDisposition = (filename) => {
   const cleanName = safeFileName(filename);
@@ -450,9 +457,10 @@ const handleDownloadProxy = async (req, res) => {
   }
 
   const contentType = upstream.headers.get("content-type") || "application/octet-stream";
-  const extension = extensionFromContentType(contentType, mediaTargetUrl);
-  const baseName = cached.filename;
-  const finalName = baseName.includes(".") ? baseName : `${baseName}${extension}`;
+  const rawExt = (extensionFromContentType(contentType, mediaTargetUrl) || `.${cached.ext || "mp4"}`).replace(/^\./, "");
+  let baseName = String(cached.filename || "download").replace(/[<>:"/\\|?*\x00-\x1F]/g, "").trim().replace(/\.+$/, "");
+  const knownExtRegex = /\.(mp4|mp3|m4a|webm|jpg|jpeg|png|webp)$/i;
+  const finalName = knownExtRegex.test(baseName) ? baseName : `${baseName}.${cached.ext || rawExt || "mp4"}`;
 
   res.writeHead(200, {
     "content-type": contentType,
