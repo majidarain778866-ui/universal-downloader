@@ -65,6 +65,7 @@ const mimeTypes = {
   ".css": "text/css; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
   ".json": "application/json; charset=utf-8",
+  ".webmanifest": "application/manifest+json; charset=utf-8",
   ".png": "image/png",
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
@@ -656,6 +657,33 @@ const serveStatic = async (req, res) => {
     res.writeHead(200, { "content-type": "application/xml; charset=utf-8" });
     res.end(renderSitemap(req));
     return;
+  }
+
+  if (requestUrl.pathname === "/manifest.json") {
+    const manifestPath = join(publicDir, "manifest.json");
+    try {
+      const manifestData = await readFile(manifestPath, "utf8");
+      res.writeHead(200, {
+        "content-type": "application/manifest+json; charset=utf-8",
+        "cache-control": "public, max-age=3600"
+      });
+      res.end(manifestData);
+      return;
+    } catch {}
+  }
+
+  if (requestUrl.pathname === "/sw.js") {
+    const swPath = join(publicDir, "sw.js");
+    try {
+      const swData = await readFile(swPath, "utf8");
+      res.writeHead(200, {
+        "content-type": "application/javascript; charset=utf-8",
+        "cache-control": "no-cache, no-store, must-revalidate",
+        "service-worker-allowed": "/"
+      });
+      res.end(swData);
+      return;
+    } catch {}
   }
 
   const routePage = seoPages[requestUrl.pathname === "/index.html" ? "/" : requestUrl.pathname];

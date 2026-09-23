@@ -23,6 +23,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
     
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Social Downloader" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <link rel="stylesheet" href="/styles.css" />
     <style id="theme-style">
       :root {
@@ -80,6 +88,12 @@
             <span class="material-symbols-outlined nav-icon">rss_feed</span>
             <span>Blog</span>
           </a>
+        </div>
+        <div class="topbar-actions">
+          <button id="pwa-install-btn" class="pwa-install-btn" type="button" aria-label="Install App" style="display: none;">
+            <span class="material-symbols-outlined nav-icon">install_mobile</span>
+            <span>Install App</span>
+          </button>
         </div>
       </nav>
 

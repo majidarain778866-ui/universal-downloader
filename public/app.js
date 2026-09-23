@@ -552,3 +552,128 @@ document.addEventListener("click", (event) => {
     setTimeout(() => setStatus(""), 4000);
   }, 1200);
 });
+
+// ==========================================
+// PWA (PROGRESSIVE WEB APP) SERVICE WORKER & INSTALLATION
+// ==========================================
+
+let deferredPrompt = null;
+const pwaInstallBtn = document.querySelector("#pwa-install-btn");
+const pwaBanner = document.querySelector("#pwa-install-banner");
+const pwaBannerInstallBtn = document.querySelector("#pwa-banner-install-btn");
+const pwaBannerCloseBtn = document.querySelector("#pwa-banner-close-btn");
+const iosDialog = document.querySelector("#ios-install-dialog");
+const iosCloseBtn = document.querySelector("#ios-modal-close-btn");
+
+// Register Service Worker
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then((reg) => {
+        console.log("Service Worker registered with scope:", reg.scope);
+      })
+      .catch((err) => {
+        console.warn("Service Worker registration failed:", err);
+      });
+  });
+}
+
+// Detect if running in standalone mode (already installed)
+const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+
+// Detect iOS devices
+const isIos = () => {
+  const userAgent = window.navigator.userAgent.toLowerCase();
+  return /iphone|ipad|ipod/.test(userAgent);
+};
+
+const showInstallUI = () => {
+  if (isStandalone) return;
+  if (pwaInstallBtn) pwaInstallBtn.style.display = "inline-flex";
+
+  // Show floating banner if user hasn't dismissed it in the last 7 days
+  const dismissedTime = localStorage.getItem("pwa_prompt_dismissed");
+  const sevenDays = 7 * 24 * 60 * 60 * 1000;
+  if (pwaBanner && (!dismissedTime || Date.now() - Number(dismissedTime) > sevenDays)) {
+    pwaBanner.removeAttribute("hidden");
+  }
+};
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  // Prevent mini-infobar on mobile Chrome
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallUI();
+});
+
+// For desktop and iOS or browsers, display the button if not installed
+if (!isStandalone) {
+  if (isIos() || window.innerWidth > 768) {
+    showInstallUI();
+  }
+}
+
+const triggerInstall = async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") {
+      console.log("User accepted the PWA install prompt");
+      if (pwaInstallBtn) pwaInstallBtn.style.display = "none";
+      if (pwaBanner) pwaBanner.hidden = true;
+    }
+    deferredPrompt = null;
+  } else if (isIos()) {
+    if (iosDialog) {
+      if (typeof iosDialog.showModal === "function") {
+        iosDialog.showModal();
+      } else {
+        iosDialog.setAttribute("open", "");
+      }
+    }
+  } else {
+    // If browser supports installation via menu
+    setStatus("💡 Click the Install icon in your browser address bar or menu (⋮) to install.");
+  }
+};
+
+if (pwaInstallBtn) {
+  pwaInstallBtn.addEventListener("click", triggerInstall);
+}
+
+if (pwaBannerInstallBtn) {
+  pwaBannerInstallBtn.addEventListener("click", triggerInstall);
+}
+
+if (pwaBannerCloseBtn) {
+  pwaBannerCloseBtn.addEventListener("click", () => {
+    if (pwaBanner) pwaBanner.hidden = true;
+    localStorage.setItem("pwa_prompt_dismissed", String(Date.now()));
+  });
+}
+
+if (iosCloseBtn && iosDialog) {
+  iosCloseBtn.addEventListener("click", () => {
+    if (typeof iosDialog.close === "function") {
+      iosDialog.close();
+    } else {
+      iosDialog.removeAttribute("open");
+    }
+  });
+  iosDialog.addEventListener("click", (e) => {
+    if (e.target === iosDialog) {
+      if (typeof iosDialog.close === "function") iosDialog.close();
+      else iosDialog.removeAttribute("open");
+    }
+  });
+}
+
+window.addEventListener("appinstalled", () => {
+  console.log("PWA installed successfully");
+  if (pwaInstallBtn) pwaInstallBtn.style.display = "none";
+  if (pwaBanner) pwaBanner.hidden = true;
+  setStatus("🎉 Social Downloader App installed successfully!");
+  setTimeout(() => setStatus(""), 4000);
+});
+
