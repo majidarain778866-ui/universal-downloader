@@ -1,12 +1,16 @@
 // GetintoDevice Chrome Extension - Service Worker (Manifest V3)
 
-const PRODUCTION_API_BASE = 'https://getintodevices.netlify.app';
+const PRODUCTION_API_BASE = 'https://getintodevice.netlify.app';
+
+const getApiBase = async () => {
+  const store = await chrome.storage.sync.get(['customApiBase', 'apiBaseUrl']);
+  return store.customApiBase || store.apiBaseUrl || PRODUCTION_API_BASE;
+};
 
 // Installation & Defaults Setup
 chrome.runtime.onInstalled.addListener(() => {
   console.log('[GetintoDevice] Extension Service Worker initialized.');
 
-  // Hardcode production API endpoint securely
   chrome.storage.sync.set({ apiBaseUrl: PRODUCTION_API_BASE });
 
   chrome.storage.sync.get(['enableFloatingButtons', 'accentColor'], (res) => {
@@ -31,7 +35,8 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     console.log('[GetintoDevice] Context menu download for:', targetUrl);
 
     try {
-      const response = await fetch(`${PRODUCTION_API_BASE}/api/video-info`, {
+      const apiBase = await getApiBase();
+      const response = await fetch(`${apiBase}/api/video-info`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: targetUrl })
@@ -41,8 +46,9 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       const data = await response.json();
 
       const primaryDownload = data.downloads?.[0];
-      if (primaryDownload && primaryDownload.url) {
-        const downloadUrl = primaryDownload.url.startsWith('http') ? primaryDownload.url : `${PRODUCTION_API_BASE}${primaryDownload.url}`;
+      if (primaryDownload && (primaryDownload.download_url || primaryDownload.url)) {
+        const rawUrl = primaryDownload.download_url || primaryDownload.url;
+        const downloadUrl = rawUrl.startsWith('http') ? rawUrl : `${apiBase}${rawUrl}`;
         chrome.downloads.download({
           url: downloadUrl,
           saveAs: true
@@ -76,18 +82,20 @@ chrome.downloads.onChanged.addListener(async (delta) => {
 // Listen to Messages from Content Scripts & Popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'FETCH_VIDEO_INFO') {
-    fetch(`${PRODUCTION_API_BASE}/api/video-info`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: request.url })
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        sendResponse({ success: true, data, apiBase: PRODUCTION_API_BASE });
+    getApiBase().then((apiBase) => {
+      fetch(`${apiBase}/api/video-info`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: request.url })
       })
-      .catch((err) => {
-        sendResponse({ success: false, error: err.message });
-      });
+        .then((res) => res.json())
+        .then((data) => {
+          sendResponse({ success: true, data, apiBase });
+        })
+        .catch((err) => {
+          sendResponse({ success: false, error: err.message });
+        });
+    });
     return true;
   }
 

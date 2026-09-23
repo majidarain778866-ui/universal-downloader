@@ -1,6 +1,4 @@
-// GetintoDevice Chrome Extension Popup Controller
-
-const PRODUCTION_API_BASE = 'https://getintodevices.netlify.app';
+const PRODUCTION_API_BASE = 'https://getintodevice.netlify.app';
 let activeTabUrl = '';
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -219,7 +217,9 @@ async function triggerFetchMedia(url) {
   btnFetch.disabled = true;
 
   try {
-    const response = await fetch(`${PRODUCTION_API_BASE}/api/video-info`, {
+    const stored = await chrome.storage.sync.get(['customApiBase']);
+    const apiBase = stored.customApiBase || PRODUCTION_API_BASE;
+    const response = await fetch(`${apiBase}/api/video-info`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ url })

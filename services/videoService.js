@@ -1001,6 +1001,8 @@ export const getOrCreateCookiesPath = () => {
 };
 
 const buildYtDlpArgs = (url, cookiesPath, { useImpersonate = false, useCookies = true, playerClient = "mweb,android,web" } = {}) => {
+  const isYouTube = /youtube\.com|youtu\.be/i.test(url);
+  const isInstagram = /instagram\.com|instagr\.am/i.test(url);
   const args = [
     ...ytDlpArgs,
     "--dump-single-json",
@@ -1017,8 +1019,12 @@ const buildYtDlpArgs = (url, cookiesPath, { useImpersonate = false, useCookies =
     args.push("--impersonate", "chrome");
   }
 
-  if (playerClient) {
+  if (isYouTube && playerClient) {
     args.push("--extractor-args", `youtube:player_client=${playerClient}`);
+  }
+
+  if (isInstagram) {
+    args.push("--extractor-args", "instagram:app_id=ios");
   }
 
   if (useCookies && cookiesPath) {
@@ -1036,21 +1042,27 @@ const runYtDlp = async (url) => {
     PYTHONPATH: [process.env.YTDLP_PYTHON_PATH, process.env.PYTHONPATH].filter(Boolean).join(process.platform === "win32" ? ";" : ":")
   };
 
+  const isYouTube = /youtube\.com|youtu\.be/i.test(url);
   const execOptions = {
     encoding: "utf8",
     env: commonEnv,
     maxBuffer: 80 * 1024 * 1024,
-    timeout: 15000,
+    timeout: isYouTube ? 8000 : 5000,
     windowsHide: true
   };
 
   const strategies = [];
-  if (cookiesPath) {
-    strategies.push({ useCookies: true, useImpersonate: false, playerClient: "mweb,android,web" });
-    strategies.push({ useCookies: true, useImpersonate: false, playerClient: "ios,android" });
+  if (isYouTube) {
+    if (cookiesPath) {
+      strategies.push({ useCookies: true, useImpersonate: false, playerClient: "mweb,android,web" });
+    }
+    strategies.push({ useCookies: false, useImpersonate: false, playerClient: "mweb,android,web" });
+  } else {
+    if (cookiesPath) {
+      strategies.push({ useCookies: true, useImpersonate: false });
+    }
+    strategies.push({ useCookies: false, useImpersonate: false });
   }
-  strategies.push({ useCookies: false, useImpersonate: false, playerClient: "mweb,android,web" });
-  strategies.push({ useCookies: false, useImpersonate: false, playerClient: "ios,android" });
 
   let lastError;
 
@@ -1073,13 +1085,23 @@ const runYtDlp = async (url) => {
           "Network permission blocked yt-dlp. Allow Python/Node through Windows Firewall or run the app outside the restricted sandbox."
         );
       }
+      // If Instagram or TikTok has a definitive login/bot block, break early to prevent waiting
+      if (/Instagram sent an empty media response|Requested content is not available|login required|Your IP address is blocked|Unexpected response from webpage request/i.test(stderr)) {
+        break;
+      }
     }
   }
 
   const stderr = String(lastError?.stderr || lastError?.message || "");
   console.error("runYtDlp all attempts failed. Stderr:", stderr);
+  if (/Instagram sent an empty media response|Requested content is not available|login required|Failed to parse JSON/i.test(stderr)) {
+    throw new Error("This Instagram post or reel requires login or is private. Please ensure the link is public or update cookies.txt.");
+  }
+  if (/Your IP address is blocked|Unexpected response from webpage request/i.test(stderr)) {
+    throw new Error("TikTok bot detection temporarily blocked direct server access. Please use the direct no-watermark options.");
+  }
   if (/private|login|cookies|not available|unsupported|unable to extract|unable to download webpage|http error 404|Cannot parse data/i.test(stderr)) {
-    throw new Error("This video is private, unsupported, unavailable, or YouTube bot detection blocked access. Please check if link is public or update cookies.");
+    throw new Error("This video is private, unsupported, unavailable, or platform bot detection blocked access. Please check if link is public or update cookies.");
   }
   const cleanError = stderr.split("\n")
     .map((line) => line.trim())
@@ -1295,92 +1317,289 @@ const fetchYouTubeFallback = async (url) => {
 };
 
 const fetchTikTokFallback = async (url) => {
-  const res = await fetch(`https://tikwm.com/api/?url=${encodeURIComponent(url)}`);
-  const json = await res.json().catch(() => ({}));
-  if (!json.data || !json.data.play) throw new Error("Could not extract TikTok video link. Please check if link is public.");
-
-  const title = json.data.title || "TikTok Video";
-  const videoUrl = json.data.play;
-  const coverUrl = json.data.cover || json.data.origin_cover;
-
-  const videoFormatId = cacheDownload({ format: { url: videoUrl, ext: "mp4", height: 720 }, title });
-  const audioFormatId = json.data.music ? cacheDownload({ format: { url: json.data.music, ext: "mp3" }, title: `${title}-audio` }) : null;
-  const thumbOption = coverUrl ? normalizeThumbnail(coverUrl, title) : null;
-
-  const downloads = [
-    {
-      id: videoFormatId,
-      label: "No Watermark HD MP4 Video",
-      resolution: "720p (HD)",
-      type: "video",
-      has_audio: true,
-      has_video: true,
-      badge: "Best MP4 Video",
-      extension: "mp4",
-      download_url: `/api/download?id=${encodeURIComponent(videoFormatId)}`,
-      preview_url: `/api/download?id=${encodeURIComponent(videoFormatId)}&preview=1`
-    }
-  ];
-  if (audioFormatId) {
-    downloads.push({
-      id: audioFormatId,
-      label: "TikTok Audio MP3",
-      resolution: "320kbps MP3",
-      type: "audio",
-      badge: "Audio MP3",
-      extension: "mp3",
-      download_url: `/api/download?id=${encodeURIComponent(audioFormatId)}`
+  // Strategy 1: Ultra-fast TikWM POST with hd=1 (resolves in ~0.4s with full HD & no watermark)
+  try {
+    const res = await fetch("https://www.tikwm.com/api/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+      },
+      body: `url=${encodeURIComponent(url)}&hd=1`
     });
-  }
-  if (thumbOption) downloads.push(thumbOption);
 
-  return {
-    title,
-    thumbnail: coverUrl || "",
-    platform: "TikTok",
-    platform_key: "tiktok",
-    platform_label: "TikTok",
-    platform_icon: "TT",
-    uploader: json.data.author?.nickname || "TikTok Creator",
-    duration: formatDuration(json.data.duration),
-    source_url: url,
-    media: { title, thumbnail: coverUrl },
-    creator: { name: json.data.author?.nickname, handle: json.data.author?.unique_id, avatar: json.data.author?.avatar },
-    primary_actions: {
-      high_quality: downloads[0],
-      normal_quality: downloads[0],
-      audio_mp3: downloads.find(d => d.type === "audio") || null,
-      thumbnail_hd: thumbOption
-    },
-    downloads,
-    videos: downloads
-  };
+    if (res.ok) {
+      const json = await res.json().catch(() => ({}));
+      if (json.code === 0 && json.data) {
+        const data = json.data;
+        const title = data.title || "TikTok Video";
+        const coverUrl = data.cover || data.origin_cover || data.ai_dynamic_cover || "";
+        const downloads = [];
+
+        // 1. Full HD No-Watermark MP4 if available
+        if (data.hdplay) {
+          const hdId = cacheDownload({ format: { url: data.hdplay, ext: "mp4", height: 1080 }, title: `${title} (HD)` });
+          downloads.push({
+            id: hdId,
+            label: "No Watermark HD MP4 Video",
+            resolution: "1080p (HD)",
+            type: "video",
+            has_audio: true,
+            has_video: true,
+            badge: "Best HD (No Watermark)",
+            extension: "mp4",
+            download_url: `/api/download?id=${encodeURIComponent(hdId)}`,
+            preview_url: `/api/download?id=${encodeURIComponent(hdId)}&preview=1`
+          });
+        }
+
+        // 2. Standard No-Watermark MP4
+        if (data.play) {
+          const vId = cacheDownload({ format: { url: data.play, ext: "mp4", height: 720 }, title });
+          downloads.push({
+            id: vId,
+            label: data.hdplay ? "No Watermark MP4 Video" : "No Watermark HD MP4 Video",
+            resolution: "720p (HD)",
+            type: "video",
+            has_audio: true,
+            has_video: true,
+            badge: data.hdplay ? "Fast MP4" : "Best MP4 Video",
+            extension: "mp4",
+            download_url: `/api/download?id=${encodeURIComponent(vId)}`,
+            preview_url: `/api/download?id=${encodeURIComponent(vId)}&preview=1`
+          });
+        }
+
+        // 3. Watermarked MP4 if available
+        if (data.wmplay) {
+          const wId = cacheDownload({ format: { url: data.wmplay, ext: "mp4" }, title: `${title} (Watermark)` });
+          downloads.push({
+            id: wId,
+            label: "Watermarked MP4 Video",
+            resolution: "Original MP4",
+            type: "video",
+            has_audio: true,
+            has_video: true,
+            badge: "Watermark",
+            extension: "mp4",
+            download_url: `/api/download?id=${encodeURIComponent(wId)}`,
+            preview_url: `/api/download?id=${encodeURIComponent(wId)}&preview=1`
+          });
+        }
+
+        // 4. Photo slideshow images if this is a photo post
+        if (Array.isArray(data.images) && data.images.length > 0) {
+          data.images.forEach((imgUrl, idx) => {
+            const pId = cacheDownload({ format: { url: imgUrl, ext: "jpeg" }, title: `${title}-photo-${idx + 1}` });
+            downloads.push({
+              id: pId,
+              label: `HD Photo ${idx + 1}`,
+              resolution: "High-Res Image",
+              type: "image",
+              badge: `Photo ${idx + 1}`,
+              extension: "jpeg",
+              download_url: `/api/download?id=${encodeURIComponent(pId)}`
+            });
+          });
+        }
+
+        // 5. Direct Audio MP3
+        if (data.music) {
+          const aId = cacheDownload({ format: { url: data.music, ext: "mp3" }, title: `${title}-audio` });
+          downloads.push({
+            id: aId,
+            label: "TikTok Audio MP3",
+            resolution: "320kbps MP3",
+            type: "audio",
+            badge: "Audio MP3",
+            extension: "mp3",
+            download_url: `/api/download?id=${encodeURIComponent(aId)}`
+          });
+        }
+
+        // 6. HD Thumbnail cover
+        const thumbOption = coverUrl ? normalizeThumbnail(coverUrl, title) : null;
+        if (thumbOption) downloads.push(thumbOption);
+
+        if (downloads.length > 0) {
+          const authorNick = data.author?.nickname || "TikTok Creator";
+          const authorUser = data.author?.unique_id || "";
+          return {
+            title,
+            thumbnail: coverUrl,
+            platform: "TikTok",
+            platform_key: "tiktok",
+            platform_label: "TikTok",
+            platform_icon: "TT",
+            uploader: authorNick,
+            duration: formatDuration(data.duration),
+            source_url: url,
+            media: {
+              title,
+              thumbnail: coverUrl,
+              duration: formatDuration(data.duration),
+              view_count: data.play_count ? String(data.play_count) : "",
+              like_count: data.digg_count ? String(data.digg_count) : "",
+              share_count: data.share_count ? String(data.share_count) : "",
+              upload_date: data.create_time ? new Date(data.create_time * 1000).toISOString() : ""
+            },
+            creator: {
+              name: authorNick,
+              handle: authorUser ? `@${authorUser}` : "",
+              avatar: data.author?.avatar || "",
+              profile_url: authorUser ? `https://www.tiktok.com/@${authorUser}` : ""
+            },
+            primary_actions: {
+              high_quality: downloads[0],
+              normal_quality: downloads[1] || downloads[0],
+              audio_mp3: downloads.find(d => d.type === "audio") || null,
+              thumbnail_hd: thumbOption
+            },
+            downloads,
+            videos: downloads
+          };
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("[videoService] TikWM POST error:", err.message);
+  }
+
+  // Strategy 2: GET fallback with www subdomain
+  try {
+    const res = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(url)}&hd=1`, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+      }
+    });
+    const json = await res.json().catch(() => ({}));
+    if (json.data && (json.data.play || json.data.hdplay)) {
+      const data = json.data;
+      const title = data.title || "TikTok Video";
+      const videoUrl = data.hdplay || data.play;
+      const coverUrl = data.cover || data.origin_cover;
+      const videoFormatId = cacheDownload({ format: { url: videoUrl, ext: "mp4", height: 720 }, title });
+      const audioFormatId = data.music ? cacheDownload({ format: { url: data.music, ext: "mp3" }, title: `${title}-audio` }) : null;
+      const thumbOption = coverUrl ? normalizeThumbnail(coverUrl, title) : null;
+      const downloads = [
+        {
+          id: videoFormatId,
+          label: "No Watermark HD MP4 Video",
+          resolution: "720p (HD)",
+          type: "video",
+          has_audio: true,
+          has_video: true,
+          badge: "Best MP4 Video",
+          extension: "mp4",
+          download_url: `/api/download?id=${encodeURIComponent(videoFormatId)}`,
+          preview_url: `/api/download?id=${encodeURIComponent(videoFormatId)}&preview=1`
+        }
+      ];
+      if (audioFormatId) {
+        downloads.push({
+          id: audioFormatId,
+          label: "TikTok Audio MP3",
+          resolution: "320kbps MP3",
+          type: "audio",
+          badge: "Audio MP3",
+          extension: "mp3",
+          download_url: `/api/download?id=${encodeURIComponent(audioFormatId)}`
+        });
+      }
+      if (thumbOption) downloads.push(thumbOption);
+      return {
+        title,
+        thumbnail: coverUrl || "",
+        platform: "TikTok",
+        platform_key: "tiktok",
+        platform_label: "TikTok",
+        platform_icon: "TT",
+        uploader: data.author?.nickname || "TikTok Creator",
+        duration: formatDuration(data.duration),
+        source_url: url,
+        media: { title, thumbnail: coverUrl },
+        creator: { name: data.author?.nickname, handle: data.author?.unique_id, avatar: data.author?.avatar },
+        primary_actions: {
+          high_quality: downloads[0],
+          normal_quality: downloads[0],
+          audio_mp3: downloads.find(d => d.type === "audio") || null,
+          thumbnail_hd: thumbOption
+        },
+        downloads,
+        videos: downloads
+      };
+    }
+  } catch (err) {
+    console.warn("[videoService] TikWM GET fallback error:", err.message);
+  }
+
+  throw new Error("Could not extract TikTok video link. Please check if link is public.");
 };
 
 const fetchInstagramFallback = async (url) => {
   const cleanUrl = url.split("?")[0].replace(/\/+$/, "");
-  const embedUrl = `${cleanUrl}/embed/captioned/`;
-  const htmlRes = await fetch(embedUrl, {
-    headers: {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
-    }
-  }).catch(() => null);
 
+  // Strategy 1: Check embedded captioned and public embed endpoints
+  const embedUrls = [`${cleanUrl}/embed/captioned/`, `${cleanUrl}/embed/`];
   let videoUrl = null;
   let imgUrl = null;
-  if (htmlRes && htmlRes.ok) {
-    const html = await htmlRes.text();
-    const videoMatch = html.match(/video_url\\?":\\?"([^"]+)\\?"/i) || html.match(/src=\\?"(https:\/\/[^"]+\.mp4[^"]*)\\?"/i);
-    videoUrl = videoMatch ? videoMatch[1].replace(/\\/g, "").replace(/&amp;/g, "&") : null;
-    const imgMatch = html.match(/display_url\\?":\\?"([^"]+)\\?"/i) || html.match(/src=\\?"(https:\/\/[^"]+\.jpg[^"]*)\\?"/i);
-    imgUrl = imgMatch ? imgMatch[1].replace(/\\/g, "").replace(/&amp;/g, "&") : null;
+  let caption = "";
+
+  for (const embedUrl of embedUrls) {
+    try {
+      const htmlRes = await fetch(embedUrl, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+          "Accept-Language": "en-US,en;q=0.9"
+        }
+      }).catch(() => null);
+
+      if (htmlRes && htmlRes.ok) {
+        const html = await htmlRes.text();
+        const videoMatch = html.match(/video_url\\?":\\?"([^"]+)\\?"/i) || html.match(/src=\\?"(https:\/\/[^"]+\.mp4[^"]*)\\?"/i);
+        if (videoMatch) videoUrl = videoMatch[1].replace(/\\/g, "").replace(/&amp;/g, "&");
+
+        const imgMatch = html.match(/display_url\\?":\\?"([^"]+)\\?"/i) || html.match(/src=\\?"(https:\/\/[^"]+\.jpg[^"]*)\\?"/i);
+        if (imgMatch) imgUrl = imgMatch[1].replace(/\\/g, "").replace(/&amp;/g, "&");
+
+        const captionMatch = html.match(/<div class="Caption"[^>]*>([\s\S]*?)<\/div>/i);
+        if (captionMatch) {
+          caption = captionMatch[1].replace(/<[^>]+>/g, "").trim().slice(0, 100);
+        }
+
+        if (videoUrl || imgUrl) break;
+      }
+    } catch {}
+  }
+
+  // Strategy 2: Social media crawler user-agent for OpenGraph tags
+  if (!videoUrl && !imgUrl) {
+    try {
+      const fbRes = await fetch(cleanUrl, {
+        headers: {
+          "User-Agent": "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)",
+          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+        }
+      }).catch(() => null);
+
+      if (fbRes && fbRes.ok) {
+        const text = await fbRes.text();
+        const ogVideo = text.match(/property="og:video(?::secure_url)?"\s+content="([^"]+)"/i) ||
+                        text.match(/content="([^"]+)"\s+property="og:video(?::secure_url)?"/i);
+        if (ogVideo) videoUrl = ogVideo[1].replace(/&amp;/g, "&");
+
+        const ogImage = text.match(/property="og:image"\s+content="([^"]+)"/i) ||
+                        text.match(/content="([^"]+)"\s+property="og:image"/i);
+        if (ogImage) imgUrl = ogImage[1].replace(/&amp;/g, "&");
+      }
+    } catch {}
   }
 
   if (!videoUrl && !imgUrl) {
-    throw new Error("This Instagram post is private, login-protected, or unavailable.");
+    throw new Error("This Instagram post or reel requires login or is private. Please ensure the link is public or update cookies.txt with a valid Instagram session.");
   }
 
-  const title = "Instagram Media";
+  const title = caption || "Instagram Media";
   const downloads = [];
   if (videoUrl) {
     const vId = cacheDownload({ format: { url: videoUrl, ext: "mp4" }, title });

@@ -1,6 +1,6 @@
 // GetintoDevice Admin Dashboard Controller
 
-const PRODUCTION_API_BASE = 'https://getintodevices.netlify.app';
+const PRODUCTION_API_BASE = 'https://getintodevice.netlify.app';
 
 document.addEventListener('DOMContentLoaded', async () => {
   setupAdminNavigation();
